@@ -23,6 +23,7 @@ export function setupControls(
   if (speedSlider) {
     speedSlider.addEventListener('input', () => {
       config.speed = parseFloat(speedSlider.value);
+      console.log(`OCEAN SPEED: ${config.speed}`);
     });
   }
   
@@ -31,6 +32,7 @@ export function setupControls(
   if (waveSlider) {
     waveSlider.addEventListener('input', () => {
       config.waveAmplitude = parseFloat(waveSlider.value);
+      console.log(`WAVE AMPLITUDE: ${config.waveAmplitude}`);
     });
   }
   
@@ -39,6 +41,7 @@ export function setupControls(
   if (densitySlider) {
     densitySlider.addEventListener('change', () => {
       config.density = parseInt(densitySlider.value);
+      console.log(`DENSITY: ${config.density}`);
       wordField.create(poems, config.density);
       foamSystem.updateDensity(wordField.getWordCount());
     });
@@ -96,6 +99,16 @@ export function setupControls(
       if (letterSatInput) config.letterSaturation = parseFloat(letterSatInput.value);
       if (letterContrastInput) config.letterContrast = parseFloat(letterContrastInput.value);
       
+      // Log letter settings to console
+      console.log('=== LETTER APPEARANCE ===');
+      console.log(`Size: ${config.letterSize}`);
+      console.log(`Bloom: ${config.letterBloom}`);
+      console.log(`Opacity: ${config.letterOpacity}`);
+      console.log(`Hue: ${config.letterHue}`);
+      console.log(`Saturation: ${config.letterSaturation}`);
+      console.log(`Contrast: ${config.letterContrast}`);
+      console.log('========================');
+      
       // Apply to words
       wordField.applyAppearance({
         opacity: config.letterOpacity,
@@ -124,10 +137,18 @@ export function setupControls(
   
   const updateVersePosition = () => {
     const x = parseFloat(verseXSlider?.value || '0');
-    const y = parseFloat(verseYSlider?.value || '100');
-    const z = parseFloat(verseZSlider?.value || '200');
+    const y = parseFloat(verseYSlider?.value || '80');
+    const z = parseFloat(verseZSlider?.value || '180');
     const scale = parseFloat(verseScaleSlider?.value || '1');
     verseAnimation.setPosition(x, y, z, scale);
+    
+    // Log values to console for debugging
+    console.log('=== VERSE POSITION ===');
+    console.log(`X: ${x}`);
+    console.log(`Y: ${y}`);
+    console.log(`Z: ${z}`);
+    console.log(`Scale: ${scale}`);
+    console.log('======================');
   };
   
   if (verseXSlider) {
