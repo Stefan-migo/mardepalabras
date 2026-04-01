@@ -79,7 +79,7 @@ let tiempo = 0;
 
 // Performance mode state
 let performanceMode = false;
-let cameraZoom = 2.2; // 1.0 = normal, >1 = zoomed out (farther camera)
+let cameraZoom = 1.8; // 1.0 = normal, >1 = zoomed out (farther camera)
 let cameraY = 250; // Camera height (Y position)
 
 // Simplified mouse state for performance

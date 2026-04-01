@@ -48,7 +48,7 @@ export const curatedPoems: Poem[] = [
       'de quienes estuvieron en el duelo',
       'tras la fiesta.'
     ],
-    excerpt: 'Sentirse solo es acordarse de quienes estiveram en el duelo'
+    excerpt: 'Sentirse solo es acordarse de quienes estuvieron en el duelo'
   },
   {
     title: 'Pueblo de pie',
@@ -117,7 +117,7 @@ export const curatedPoems: Poem[] = [
     author: 'Mavi Dogan',
     lines: [
       'La tierra no se vende, se cuida;',
-      'el territorio no se conmemora, se habita.'
+      'el territorio no se comemora, se habita.'
     ],
     excerpt: 'La tierra no se vende, se cuida; el territorio se habita'
   },
