@@ -19,11 +19,11 @@ export class VerseAnimationSystem {
   private textureCache: Map<string, THREE.Texture> = new Map();
   private scene: THREE.Scene;
   
-  // Configurable position
-  private position: THREE.Vector3 = new THREE.Vector3(0, isMobile ? 220 : 100, isMobile ? 250 : 200);
-  private scale: number = isMobile ? 3.0 : 1; // Even larger on mobile
-  private letterSpacing: number = isMobile ? 28 : 14; // Much wider on mobile
-  private lineHeight: number = isMobile ? 55 : 22; // Much taller line spacing
+  // Configurable position - push further away for mobile to fit all lines
+  private position: THREE.Vector3 = new THREE.Vector3(0, isMobile ? 280 : 100, isMobile ? 350 : 200);
+  private scale: number = isMobile ? 2.0 : 1; // Smaller scale to fit 4 lines on screen
+  private letterSpacing: number = isMobile ? 18 : 14; // Tighter spacing
+  private lineHeight: number = isMobile ? 40 : 22; // Smaller line height for 4 lines
   
   // Texture quality - higher on mobile
   private textureSize: number = isMobile ? 128 : 48;
@@ -84,9 +84,9 @@ export class VerseAnimationSystem {
     this.currentIndex = 0;
     this.typingSpeed = Math.max(30, (this.pendingDuration || 4000) / this.currentText.length);
     
-    // Auto-wrap on mobile
+    // Auto-wrap on mobile - fewer chars per line to create more lines (up to 4)
     if (isMobile) {
-      const maxLineLength = window.innerWidth < 400 ? 20 : 28;
+      const maxLineLength = window.innerWidth < 400 ? 15 : 18;
       this.currentText = this.wrapText(this.currentText, maxLineLength);
     }
     
@@ -164,12 +164,12 @@ export class VerseAnimationSystem {
     const x = (charInLine - this.getLongestLineLength(lines) / 2) * this.letterSpacing;
     // First line starts higher, each subsequent line is below
     const y = isMobile 
-      ? -lineIndex * this.lineHeight + 40  // Offset first line up by 40
+      ? -lineIndex * this.lineHeight + 30  // Offset first line up by 30
       : -lineIndex * this.lineHeight;
     
     // Scale is already adjusted for mobile via this.scale
     sprite.position.set(x, y, 0);
-    sprite.scale.set(30, 42, 1); // Even larger letters
+    sprite.scale.set(18, 24, 1); // Smaller letters to fit 4 lines
     
     this.verseGroup.add(sprite);
     this.sprites.push(sprite);
