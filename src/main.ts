@@ -206,11 +206,11 @@ function animate() {
     if (ripples[i].time === -1) ripples.splice(i, 1);
   }
   
-  // Update word field - every frame for smooth animation
-  wordField.update(tiempo, noise.oceanWaves.bind(noise), config.waveAmplitude, mouse);
+  // Update word field - every frame for smooth animation, with ripple effects
+  wordField.update(tiempo, noise.oceanWaves.bind(noise), config.waveAmplitude, mouse, ripples);
   
-  // Update foam - every frame for smooth animation
-  foamSystem.update(tiempo, (x, z) => noise.oceanWaves(x, z, tiempo, config.waveAmplitude));
+  // Update foam - every frame for smooth animation, with ripple effects
+  foamSystem.update(tiempo, (x, z) => noise.oceanWaves(x, z, tiempo, config.waveAmplitude), ripples);
   
   // Update verse animation
   verseAnimation.update(camera);
@@ -257,23 +257,78 @@ window.addEventListener('touchstart', (e) => {
   // Don't trigger ripple if touching UI elements
   const target = e.target as HTMLElement;
   if (target.closest('#mobile-menu-btn') || target.closest('#mobile-controls') || target.closest('#performance-mode-btn')) {
-    return; // Let the button handle its own events
+    return;
   }
   
   e.preventDefault();
-  mouse.pressed = true;
+  
+  // Single touch = ripple effect
+  if (e.touches.length === 1) {
+    mouse.pressed = true;
+    const touch = e.touches[0];
+    const x = (touch.clientX / window.innerWidth - 0.5) * 2;
+    const y = (touch.clientY / window.innerHeight - 0.5) * 2;
+    mouse.worldX = x * 500;
+    mouse.worldZ = y * 500 - 300;
+    
+    // Add ripple - stronger on mobile for visibility
+    ripples.push({ x: mouse.worldX, z: mouse.worldZ, time: 0, strength: 120 });
+    
+    // Show verse on tap (more likely on mobile)
+    if (poems.length > 0 && Math.random() > 0.4) {
+      requestAnimationFrame(() => showRandomVerse());
+    }
+  }
+}, { passive: false });
+
+window.addEventListener('touchend', (e) => {
+  // Don't reset mouse if touching UI elements
+  const target = e.target as HTMLElement;
+  if (target.closest('#mobile-menu-btn') || target.closest('#mobile-controls')) {
+    return;
+  }
+  mouse.pressed = false;
+});
+
+window.addEventListener('touchmove', (e) => {
+  // Don't update mouse position if touching UI elements
+  const target = e.target as HTMLElement;
+  if (target.closest('#mobile-menu-btn') || target.closest('#mobile-controls')) {
+    return;
+  }
+  
+  // Two-finger gesture: move camera freely
+  if (e.touches.length >= 2) {
+    e.preventDefault();
+    
+    // Calculate two-finger center movement
+    const touch1 = e.touches[0];
+    const touch2 = e.touches[1];
+    const centerX = (touch1.clientX + touch2.clientX) / 2;
+    const centerY = (touch1.clientY + touch2.clientY) / 2;
+    
+    // Map to camera position (drag to move)
+    const x = (centerX / window.innerWidth - 0.5) * 2;
+    const y = (centerY / window.innerHeight - 0.5) * 2;
+    
+    // Update camera position manually (disable auto movement)
+    camera.position.x = x * 300;
+    camera.position.z = 400 - y * 200;
+    camera.lookAt(0, 0, -250);
+    return;
+  }
+  
+  // Single finger - update mouse position for continuous ripple effect
+  e.preventDefault();
   const touch = e.touches[0];
   const x = (touch.clientX / window.innerWidth - 0.5) * 2;
   const y = (touch.clientY / window.innerHeight - 0.5) * 2;
   mouse.worldX = x * 500;
   mouse.worldZ = y * 500 - 300;
   
-  // Add ripple
-  ripples.push({ x: mouse.worldX, z: mouse.worldZ, time: 0, strength: 80 });
-  
-  // Show verse on tap (more likely on mobile)
-  if (poems.length > 0 && Math.random() > 0.3) {
-    requestAnimationFrame(() => showRandomVerse());
+  // Add ripples continuously while dragging on mobile - stronger effect
+  if (mouse.pressed) {
+    ripples.push({ x: mouse.worldX, z: mouse.worldZ, time: 0, strength: 60 });
   }
 }, { passive: false });
 

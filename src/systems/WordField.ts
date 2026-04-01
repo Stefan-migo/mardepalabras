@@ -123,8 +123,8 @@ export class WordField {
     return sprites;
   }
   
-  // Update word positions - HIGHLY OPTIMIZED
-  update(time: number, waveFn: (x: number, z: number, time: number, amp: number) => number, amp: number, mouse: SimpleMouse) {
+  // Update word positions - HIGHLY OPTIMIZED with ripple support
+  update(time: number, waveFn: (x: number, z: number, time: number, amp: number) => number, amp: number, mouse: SimpleMouse, ripples?: { x: number; z: number; time: number; strength: number }[]) {
     const timeFactor = time * 0.7;
     const mouseActive = mouse.pressed;
     const mouseX = mouse.worldX;
@@ -147,7 +147,7 @@ export class WordField {
       const depthFactor = 1 - (depth * 0.35);
       const waveHeight = waveFn(baseX * 0.008, baseZ * 0.008, timeFactor * depthFactor, amp);
       
-      // Mouse effect - only when pressed
+      // Mouse/touch effect - only when pressed
       let mouseEffect = 0;
       if (mouseActive && Math.abs(baseX - mouseX) < mouseCheckRadius && Math.abs(baseZ - mouseZ) < mouseCheckRadius) {
         const dx = baseX - mouseX;
@@ -158,7 +158,26 @@ export class WordField {
         }
       }
       
-      const baseOffset = baseY + waveHeight + mouseEffect;
+      // Additional ripple effect on words
+      let rippleEffect = 0;
+      if (ripples && ripples.length > 0) {
+        for (const ripple of ripples) {
+          if (ripple.time >= 0 && ripple.time < 3) {
+            const dx = baseX - ripple.x;
+            const dz = baseZ - ripple.z;
+            const dist = Math.sqrt(dx * dx + dz * dz);
+            const rippleRadius = ripple.time * 150;
+            const rippleWidth = 100;
+            
+            if (dist < rippleRadius + rippleWidth && dist > rippleRadius - rippleWidth) {
+              const ripplePhase = (dist - rippleRadius) / rippleWidth;
+              rippleEffect += Math.sin(ripplePhase * Math.PI) * ripple.strength * 0.4 * (1 - ripple.time / 3);
+            }
+          }
+        }
+      }
+      
+      const baseOffset = baseY + waveHeight + mouseEffect + rippleEffect;
       const sinBaseX = Math.sin(baseX * 0.003);
       const zOffset = baseZ + sinTime * sinBaseX * 2;
       

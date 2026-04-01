@@ -66,8 +66,8 @@ export class FoamSystem {
     this.geometry.setDrawRange(0, this.activeCount);
   }
   
-  // Update particle positions with wave motion
-  update(time: number, waveFn: (x: number, z: number) => number) {
+  // Update particle positions with wave motion and ripple effects
+  update(time: number, waveFn: (x: number, z: number) => number, ripples?: { x: number; z: number; time: number; strength: number }[]) {
     const sin05 = Math.sin(time * 0.5);
     const sin2 = Math.sin(time * 2);
     const cos03 = Math.cos(time * 0.3);
@@ -79,8 +79,27 @@ export class FoamSystem {
       
       const waveY = waveFn(x * 0.008, z * 0.008) * 0.3;
       
+      // Apply ripple effects to foam particles
+      let rippleEffect = 0;
+      if (ripples && ripples.length > 0) {
+        for (const ripple of ripples) {
+          if (ripple.time >= 0 && ripple.time < 3) {
+            const dx = x - ripple.x;
+            const dz = z - ripple.z;
+            const dist = Math.sqrt(dx * dx + dz * dz);
+            const rippleRadius = ripple.time * 150;
+            const rippleWidth = 80;
+            
+            if (dist < rippleRadius + rippleWidth && dist > rippleRadius - rippleWidth) {
+              const ripplePhase = (dist - rippleRadius) / rippleWidth;
+              rippleEffect += Math.sin(ripplePhase * Math.PI) * ripple.strength * 0.5 * (1 - ripple.time / 3);
+            }
+          }
+        }
+      }
+      
       this.positions[i3] = x + sin05 * 2;
-      this.positions[i3 + 1] = waveY + sin2;
+      this.positions[i3 + 1] = waveY + sin2 + rippleEffect;
       this.positions[i3 + 2] = z + cos03 * 2;
     }
     
