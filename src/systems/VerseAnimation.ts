@@ -81,14 +81,15 @@ export class VerseAnimationSystem {
     
     this.currentText = this.pendingText;
     this.pendingText = null;
-    this.currentIndex = 0;
-    this.typingSpeed = Math.max(30, (this.pendingDuration || 4000) / this.currentText.length);
     
-    // Auto-wrap on mobile - fewer chars per line to create more lines (up to 4)
+    // Auto-wrap on mobile FIRST (before calculating typing speed)
     if (isMobile) {
       const maxLineLength = window.innerWidth < 400 ? 15 : 18;
       this.currentText = this.wrapText(this.currentText, maxLineLength);
     }
+    
+    // Calculate typing speed AFTER wrapping (so we have enough time for all chars)
+    this.typingSpeed = Math.max(25, (this.pendingDuration || 5000) / this.currentText.length);
     
     this.verseGroup.visible = true;
     this.verseGroup.position.copy(this.position);
@@ -120,7 +121,13 @@ export class VerseAnimationSystem {
         const char = this.currentText[this.currentIndex];
         this.addCharacter(char, this.currentIndex);
         this.currentIndex++;
+        
+        // Debug: log progress every 10 characters
+        if (this.currentIndex % 10 === 0) {
+          console.log(`Verse animation: ${this.currentIndex}/${this.currentText.length} chars`);
+        }
       } else {
+        console.log('Verse animation: COMPLETE');
         this.finishAnimation();
         return;
       }
@@ -132,8 +139,11 @@ export class VerseAnimationSystem {
   
   // Add character efficiently
   private addCharacter(char: string, index: number) {
-    // Skip newlines for now (handled by position calc)
-    if (char === '\n') return;
+    // Handle newlines - they affect lineIndex but don't create sprites
+    if (char === '\n') {
+      // Still advance the animation by not rendering but counting
+      return;
+    }
     
     // Get or create texture
     let texture = this.textureCache.get(char);
@@ -183,54 +193,34 @@ export class VerseAnimationSystem {
     return Math.max(...lines.map(l => l.length));
   }
   
-  // Professional multi-effect animation for mobile
+  // Simple fade-in animation (no complex loops that could block)
   private animateSpriteIn(sprite: THREE.Sprite, material: THREE.SpriteMaterial) {
     const startTime = performance.now();
-    const duration = isMobile ? 150 : 100;
-    const delay = this.sprites.length * (isMobile ? 20 : 10);
+    const duration = isMobile ? 100 : 80;
     
     const animate = () => {
-      if (!this.isAnimating) return;
-      
-      const elapsed = performance.now() - startTime - delay;
-      if (elapsed < 0) {
-        requestAnimationFrame(animate);
+      // Stop animation if verse was cleared
+      if (!this.isAnimating) {
+        material.opacity = 0;
         return;
       }
       
+      const elapsed = performance.now() - startTime;
       const t = Math.min(1, elapsed / duration);
       
-      // Multiple easing effects
-      const easeOutElastic = t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * (2 * Math.PI) / 3) + 1;
-      const easeOutQuad = 1 - (1 - t) * (1 - t);
-      const easeOut = easeOutQuad;
+      // Simple ease out
+      const ease = 1 - Math.pow(1 - t, 2);
+      material.opacity = ease * 0.9;
       
-      // Scale with elastic bounce
-      const scaleMultiplier = isMobile ? 1.5 : 1;
-      const baseScale = 20 * scaleMultiplier;
-      const scale = baseScale * (0.3 + easeOutElastic * 0.7) * (1 + (1 - easeOut) * 0.15);
+      const scale = 16 * (1 + (1 - ease) * 0.2);
       sprite.scale.set(scale, scale * 1.4, 1);
       
-      // Opacity with smooth fade in
-      material.opacity = easeOut * 0.95;
-      
-      // Color cycling on mobile - subtle hue shift
-      if (isMobile) {
-        const hue = 0.58 + Math.sin(t * Math.PI) * 0.1;
-        material.color.setHSL(hue % 1, 0.8, 0.7);
-      }
-      
-      // Add subtle floating offset
-      if (t >= 1) {
-        sprite.position.y += Math.sin(performance.now() * 0.003) * 0.3;
-      }
-      
-      if (t < 1 || isMobile) {
+      if (t < 1) {
         requestAnimationFrame(animate);
       }
     };
     
-    animate();
+    requestAnimationFrame(animate);
   }
   
   // Continuous floating animation for all sprites
