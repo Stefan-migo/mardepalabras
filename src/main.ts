@@ -79,7 +79,7 @@ let tiempo = 0;
 
 // Performance mode state
 let performanceMode = false;
-let cameraZoom = 1.0; // 1.0 = normal, >1 = zoomed out (farther camera)
+let cameraZoom = 2.2; // 1.0 = normal, >1 = zoomed out (farther camera)
 let cameraY = 250; // Camera height (Y position)
 
 // Simplified mouse state for performance
@@ -302,7 +302,7 @@ window.addEventListener('touchmove', (e) => {
     return;
   }
   
-  // Two-finger gesture: move camera + pinch zoom
+  // Two-finger gesture: move camera freely (no pinch zoom)
   if (e.touches.length >= 2) {
     e.preventDefault();
     
@@ -310,12 +310,6 @@ window.addEventListener('touchmove', (e) => {
     const touch2 = e.touches[1];
     const centerX = (touch1.clientX + touch2.clientX) / 2;
     const centerY = (touch1.clientY + touch2.clientY) / 2;
-    
-    // Calculate pinch distance for zoom
-    const pinchDist = Math.sqrt(
-      Math.pow(touch2.clientX - touch1.clientX, 2) + 
-      Math.pow(touch2.clientY - touch1.clientY, 2)
-    );
     
     // Map center to camera position (drag to move)
     const x = (centerX / window.innerWidth - 0.5) * 2;
@@ -325,15 +319,6 @@ window.addEventListener('touchmove', (e) => {
     camera.position.x = x * 400;
     camera.position.z = 500 - y * 300;
     camera.lookAt(0, 0, -250);
-    
-    // Update zoom based on pinch (smooth zoom)
-    const baseDist = 150;
-    const pinchFactor = pinchDist / baseDist;
-    if (pinchFactor > 1.15) {
-      cameraZoom = Math.min(3, cameraZoom * 1.02);
-    } else if (pinchFactor < 0.85) {
-      cameraZoom = Math.max(1, cameraZoom * 0.98);
-    }
     
     return;
   }
