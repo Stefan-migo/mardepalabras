@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mar de Palabras - Poética Latina</title>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=Space+Mono&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      background: #010105; 
+      overflow: hidden;
+      font-family: 'Space Mono', monospace;
+    }
+    #canvas-container {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+    #loading {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #88ccff;
+      font-size: 14px;
+      z-index: 1000;
+      text-align: center;
+    }
+    #loading .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(136, 204, 255, 0.2);
+      border-top-color: #88ccff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    #info {
+      position: fixed;
+      bottom: 30px;
+      left: 30px;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 12px;
+      z-index: 100;
+      pointer-events: none;
+      max-width: 500px;
+    }
+    #info h1 {
+      font-family: 'Crimson Pro', serif;
+      font-size: 28px;
+      font-weight: 400;
+      color: #fff;
+      letter-spacing: 3px;
+      margin-bottom: 8px;
+    }
+    #info .verse {
+      font-family: 'Crimson Pro', serif;
+      font-style: italic;
+      font-size: 16px;
+      color: rgba(200, 180, 255, 0.9);
+      margin-top: 12px;
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+    #info .verse.visible {
+      opacity: 1;
+    }
+    #info .author {
+      font-size: 11px;
+      color: rgba(136, 204, 255, 0.7);
+      margin-top: 4px;
+    }
+    #hint {
+      position: fixed;
+      top: 30px;
+      left: 30px;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 11px;
+      z-index: 100;
+    }
+    #controls {
+      position: fixed;
+      top: 30px;
+      right: 30px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #letter-settings {
+      position: fixed;
+      top: 180px;
+      right: 30px;
+      z-index: 100;
+      background: rgba(10, 10, 20, 0.85);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px;
+      width: 200px;
+      display: none;
+    }
+    #letter-settings.visible {
+      display: block;
+    }
+    #letter-settings h3 {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding-bottom: 8px;
+    }
+    #letter-settings label {
+      color: rgba(255,255,255,0.5);
+      font-size: 10px;
+      margin-bottom: 2px;
+      display: block;
+    }
+    #letter-settings input[type="range"] {
+      width: 100%;
+      accent-color: #6366f1;
+      margin-bottom: 12px;
+    }
+    #letter-settings .color-preview {
+      width: 100%;
+      height: 24px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    #toggle-letters {
+      position: fixed;
+      top: 30px;
+      right: 200px;
+      z-index: 100;
+      background: rgba(10, 10, 20, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.7);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 10px;
+      cursor: pointer;
+      font-family: 'Space Mono', monospace;
+      transition: all 0.2s ease;
+    }
+    #toggle-letters:hover {
+      background: rgba(99, 102, 241, 0.3);
+      border-color: rgba(99, 102, 241, 0.5);
+    }
+    #toggle-verse-position {
+      position: fixed;
+      top: 30px;
+      right: 290px;
+      z-index: 100;
+      background: rgba(10, 10, 20, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.7);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 10px;
+      cursor: pointer;
+      font-family: 'Space Mono', monospace;
+      transition: all 0.2s ease;
+    }
+    #toggle-verse-position:hover {
+      background: rgba(99, 102, 241, 0.3);
+      border-color: rgba(99, 102, 241, 0.5);
+    }
+    #controls label {
+      color: rgba(255,255,255,0.5);
+      font-size: 10px;
+      margin-bottom: 2px;
+    }
+    #controls input[type="range"] {
+      width: 150px;
+      accent-color: #6366f1;
+    }
+    #source-info {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      color: rgba(255,255,255,0.4);
+      font-size: 10px;
+      z-index: 100;
+      text-align: right;
+    }
+    #animate-word-btn {
+      position: fixed;
+      top: 80px;
+      left: 30px;
+      z-index: 100;
+      background: rgba(10, 10, 20, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.7);
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: 'Space Mono', monospace;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #animate-word-btn:hover {
+      background: rgba(99, 102, 241, 0.3);
+      border-color: rgba(99, 102, 241, 0.5);
+      transform: scale(1.02);
+    }
+    #animate-word-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    #animated-word-display {
+      position: fixed;
+      top: 120px;
+      left: 30px;
+      z-index: 100;
+      font-family: 'Crimson Pro', serif;
+      font-size: 24px;
+      color: rgba(200, 180, 255, 0.9);
+      min-height: 40px;
+      text-shadow: 0 0 20px rgba(136, 204, 255, 0.5);
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    #animated-word-display.visible {
+      opacity: 1;
+    }
+    #verse-position-panel {
+      position: fixed;
+      top: 130px;
+      right: 30px;
+      z-index: 100;
+      background: rgba(10, 10, 20, 0.85);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px;
+      width: 200px;
+      display: none;
+    }
+    #verse-position-panel.visible {
+      display: block;
+    }
+    #verse-position-panel h3 {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding-bottom: 8px;
+    }
+    #verse-position-panel label {
+      color: rgba(255,255,255,0.5);
+      font-size: 10px;
+      margin-bottom: 2px;
+      display: block;
+    }
+    #verse-position-panel input[type="range"] {
+      width: 100%;
+      accent-color: #6366f1;
+      margin-bottom: 12px;
+    }
+    #animated-word-display .typing-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 24px;
+      background: rgba(200, 180, 255, 0.8);
+      margin-left: 2px;
+      animation: blink 0.8s infinite;
+      vertical-align: middle;
+    }
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+  
+  <div id="loading">
+    <div class="spinner"></div>
+    <div>Cargando poesía latinoamericana...</div>
+    <div style="font-size: 11px; margin-top: 8px; opacity: 0.6">Conectando con Project Gutenberg</div>
+  </div>
+  
+  <div id="hint">Click para perturbación • Arrastra para ondas</div>
+  
+  <div id="info">
+    <h1>MAR DE PALABRAS</h1>
+    <p>Poesía latinoamericana emergida del océano digital</p>
+    <div class="verse" id="verse-display"></div>
+    <div class="author" id="author-display"></div>
+  </div>
+  
+  <button id="toggle-letters">⚙ LETRAS</button>
+  <button id="toggle-verse-position">📍 VERSO</button>
+  
+  <div id="letter-settings">
+    <h3>Personalizar Letras</h3>
+    
+    <label>Tamaño</label>
+    <input type="range" id="letter-size" min="8" max="30" step="1" value="14">
+    
+    <label>Brillo (Bloom)</label>
+    <input type="range" id="letter-bloom" min="0" max="2" step="0.1" value="0.8">
+    
+    <label>Opacidad</label>
+    <input type="range" id="letter-opacity" min="0.1" max="1" step="0.05" value="0.7">
+    
+    <label>Tono de color</label>
+    <input type="range" id="letter-hue" min="0" max="1" step="0.01" value="0.55">
+    
+    <label>Saturación</label>
+    <input type="range" id="letter-saturation" min="0" max="1" step="0.05" value="0.6">
+    
+    <label>Contraste</label>
+    <input type="range" id="letter-contrast" min="0.2" max="1" step="0.05" value="0.6">
+    
+    <div class="color-preview" id="color-preview"></div>
+    
+    <button id="apply-letter-changes" style="
+      width: 100%;
+      margin-top: 8px;
+      padding: 8px;
+      background: rgba(99, 102, 241, 0.3);
+      border: 1px solid rgba(99, 102, 241, 0.5);
+      color: #fff;
+      border-radius: 4px;
+      font-size: 10px;
+      cursor: pointer;
+      font-family: 'Space Mono', monospace;
+    ">Aplicar Cambios</button>
+  </div>
+  
+  <div id="controls">
+    <label>Velocidad del mar</label>
+    <input type="range" id="speed-slider" min="0.01" max="0.15" step="0.01" value="0.04">
+    
+    <label>Tamaño de olas</label>
+    <input type="range" id="wave-slider" min="20" max="100" step="5" value="60">
+    
+    <label>Densidad</label>
+    <input type="range" id="density-slider" min="500" max="3000" step="100" value="1500">
+  </div>
+  
+  <div id="verse-position-panel">
+    <h3>Posición del Verso 3D</h3>
+    
+    <label>Posición X</label>
+    <input type="range" id="verse-x" min="-500" max="500" step="10" value="0">
+    
+    <label>Posición Y</label>
+    <input type="range" id="verse-y" min="-200" max="400" step="10" value="100">
+    
+    <label>Posición Z</label>
+    <input type="range" id="verse-z" min="0" max="800" step="10" value="200">
+    
+    <label>Escala</label>
+    <input type="range" id="verse-scale" min="0.5" max="3" step="0.1" value="1">
+  </div>
+  
+  <div id="source-info">
+    <div>Textos: Project Gutenberg / Open Library</div>
+    <div>Licencia: Dominio Público</div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
