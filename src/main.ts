@@ -80,6 +80,7 @@ let tiempo = 0;
 // Performance mode state
 let performanceMode = false;
 let cameraZoom = 1.0; // 1.0 = normal, >1 = zoomed out (farther camera)
+let cameraY = 250; // Camera height (Y position)
 
 // Simplified mouse state for performance
 const mouse = { pressed: false, worldX: 0, worldZ: 0 };
@@ -220,7 +221,7 @@ function animate() {
   const baseX = 150 * cameraZoom;
   camera.position.set(
     Math.sin(camTime) * baseX,
-    250 + Math.cos(camTime * 0.5) * 30,
+    cameraY + Math.cos(camTime * 0.5) * 30,
     baseZ + Math.cos(camTime) * 80 * cameraZoom
   );
   camera.lookAt(0, 0, -250);
@@ -289,6 +290,27 @@ window.addEventListener('touchmove', (e) => {
   // Don't update mouse position if touching UI elements
   const target = e.target as HTMLElement;
   if (target.closest('#mobile-menu-btn') || target.closest('#mobile-controls')) {
+    return;
+  }
+  
+  // Two-finger gesture: move camera freely
+  if (e.touches.length >= 2) {
+    e.preventDefault();
+    
+    // Calculate two-finger center movement
+    const touch1 = e.touches[0];
+    const touch2 = e.touches[1];
+    const centerX = (touch1.clientX + touch2.clientX) / 2;
+    const centerY = (touch1.clientY + touch2.clientY) / 2;
+    
+    // Map to camera position (drag to move)
+    const x = (centerX / window.innerWidth - 0.5) * 2;
+    const y = (centerY / window.innerHeight - 0.5) * 2;
+    
+    // Update camera position manually (disable auto movement)
+    camera.position.x = x * 300;
+    camera.position.z = 400 - y * 200;
+    camera.lookAt(0, 0, -250);
     return;
   }
   
@@ -410,6 +432,13 @@ document.getElementById('mobile-letter-bloom')?.addEventListener('input', (e) =>
   config.letterBloom = parseFloat(target.value);
   bloomPass.strength = config.letterBloom;
   console.log('Letter bloom:', config.letterBloom);
+});
+
+// Mobile camera Y (height) control
+document.getElementById('mobile-camera-y')?.addEventListener('input', (e) => {
+  const target = e.target as HTMLInputElement;
+  cameraY = parseFloat(target.value);
+  console.log('Camera Y:', cameraY);
 });
 
 // Cache DOM elements to avoid repeated lookups
