@@ -173,28 +173,37 @@ function init(loadedPoems: Poem[]) {
 }
 
 // ============================================
-// Animation Loop - Optimized
+// Animation Loop - Optimized for INP
 // ============================================
 function animate() {
   requestAnimationFrame(animate);
   tiempo += config.speed;
   
-  // Update ripples
-  for (let i = ripples.length - 1; i >= 0; i++) {
+  // Update ripples (limit to 5)
+  const maxRipples = Math.min(ripples.length, 5);
+  for (let i = 0; i < maxRipples; i++) {
     ripples[i].time += 0.05;
-    if (ripples[i].time > 3) ripples.splice(i, 1);
+    if (ripples[i].time > 3) {
+      ripples[i].time = -1; // Mark for removal
+    }
+  }
+  // Clean up marked ripples
+  for (let i = ripples.length - 1; i >= 0; i--) {
+    if (ripples[i].time === -1) ripples.splice(i, 1);
   }
   
   // Update word field
   wordField.update(tiempo, noise.oceanWaves.bind(noise), config.waveAmplitude, mouse);
   
-  // Update foam
-  foamSystem.update(tiempo, (x, z) => noise.oceanWaves(x, z, tiempo, config.waveAmplitude));
+  // Update foam (every other frame to save CPU)
+  if (Math.floor(tiempo * 60) % 2 === 0) {
+    foamSystem.update(tiempo, (x, z) => noise.oceanWaves(x, z, tiempo, config.waveAmplitude));
+  }
   
   // Update verse animation
   verseAnimation.update(camera);
   
-  // Camera movement
+  // Camera movement - simplified
   const camTime = tiempo * 0.2;
   camera.position.set(
     Math.sin(camTime) * 150,
@@ -208,7 +217,7 @@ function animate() {
 }
 
 // ============================================
-// Events
+// Events - Optimized for INP (Interaction to Next Paint)
 // ============================================
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -217,19 +226,24 @@ window.addEventListener('resize', () => {
   composer.setSize(window.innerWidth, window.innerHeight);
 });
 
+// Use passive listener for mousemove (non-blocking)
 window.addEventListener('mousemove', (e) => {
   const x = (e.clientX / window.innerWidth - 0.5) * 2;
   const y = (e.clientY / window.innerHeight - 0.5) * 2;
   mouse.worldX = x * 500;
   mouse.worldZ = y * 500 - 300;
-});
+}, { passive: true });
 
+// Defer heavy operations to avoid blocking UI
 window.addEventListener('mousedown', () => {
   mouse.pressed = true;
+  
+  // Add ripple (lightweight)
   ripples.push({ x: mouse.worldX, z: mouse.worldZ, time: 0, strength: 80 });
   
+  // Defer DOM and animation operations
   if (poems.length > 0 && Math.random() > 0.6) {
-    showRandomVerse();
+    requestAnimationFrame(() => showRandomVerse());
   }
 });
 
@@ -237,10 +251,19 @@ window.addEventListener('mouseup', () => {
   mouse.pressed = false;
 });
 
+// Cache DOM elements to avoid repeated lookups
+let verseDisplayEl: HTMLElement | null = null;
+let authorDisplayEl: HTMLElement | null = null;
+
+function getVerseElements() {
+  if (!verseDisplayEl) verseDisplayEl = document.getElementById('verse-display');
+  if (!authorDisplayEl) authorDisplayEl = document.getElementById('author-display');
+  return { verseEl: verseDisplayEl, authorEl: authorDisplayEl };
+}
+
 function showRandomVerse() {
+  const { verseEl, authorEl } = getVerseElements();
   const poem = poems[Math.floor(Math.random() * poems.length)];
-  const verseEl = document.getElementById('verse-display');
-  const authorEl = document.getElementById('author-display');
   
   if (verseEl && authorEl) {
     const verseText = poem.excerpt || poem.lines[0];
@@ -248,8 +271,8 @@ function showRandomVerse() {
     authorEl.textContent = `— ${poem.author}, "${poem.title}"`;
     verseEl.classList.add('visible');
     
-    // Animate in 3D
-    verseAnimation.animate(verseText, 4000);
+    // Animate in 3D - defer to next frame
+    requestAnimationFrame(() => verseAnimation.animate(verseText, 4000));
     
     setTimeout(() => verseEl.classList.remove('visible'), 5000);
   }
