@@ -279,6 +279,11 @@ window.addEventListener('touchstart', (e) => {
       requestAnimationFrame(() => showRandomVerse());
     }
   }
+  
+  // Two-finger touch: disable ripples and enable camera control
+  if (e.touches.length >= 2) {
+    mouse.pressed = false;
+  }
 }, { passive: false });
 
 window.addEventListener('touchend', (e) => {
@@ -297,24 +302,39 @@ window.addEventListener('touchmove', (e) => {
     return;
   }
   
-  // Two-finger gesture: move camera freely
+  // Two-finger gesture: move camera + pinch zoom
   if (e.touches.length >= 2) {
     e.preventDefault();
     
-    // Calculate two-finger center movement
     const touch1 = e.touches[0];
     const touch2 = e.touches[1];
     const centerX = (touch1.clientX + touch2.clientX) / 2;
     const centerY = (touch1.clientY + touch2.clientY) / 2;
     
-    // Map to camera position (drag to move)
+    // Calculate pinch distance for zoom
+    const pinchDist = Math.sqrt(
+      Math.pow(touch2.clientX - touch1.clientX, 2) + 
+      Math.pow(touch2.clientY - touch1.clientY, 2)
+    );
+    
+    // Map center to camera position (drag to move)
     const x = (centerX / window.innerWidth - 0.5) * 2;
     const y = (centerY / window.innerHeight - 0.5) * 2;
     
     // Update camera position manually (disable auto movement)
-    camera.position.x = x * 300;
-    camera.position.z = 400 - y * 200;
+    camera.position.x = x * 400;
+    camera.position.z = 500 - y * 300;
     camera.lookAt(0, 0, -250);
+    
+    // Update zoom based on pinch (smooth zoom)
+    const baseDist = 150;
+    const pinchFactor = pinchDist / baseDist;
+    if (pinchFactor > 1.15) {
+      cameraZoom = Math.min(3, cameraZoom * 1.02);
+    } else if (pinchFactor < 0.85) {
+      cameraZoom = Math.max(1, cameraZoom * 0.98);
+    }
+    
     return;
   }
   
