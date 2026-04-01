@@ -38,17 +38,25 @@ export class VerseAnimationSystem {
     this.verseGroup.scale.set(scale, scale, scale);
   }
   
-  // Animate verse with smooth typing
+  // Animate verse with smooth typing - DEFERRED to avoid blocking
   animate(text: string, duration: number = 4000) {
-    if (this.isAnimating) return;
-    
-    this.clear();
-    this.currentText = text;
-    this.currentIndex = 0;
+    // Store text and config, actual animation starts in next frame
+    this.pendingText = text;
+    this.pendingDuration = duration;
     this.isAnimating = true;
+  }
+  
+  // Process pending animation - call this from animation loop
+  processPendingAnimation() {
+    if (!this.pendingText) return;
     
-    // Calculate typing speed based on text length and desired duration
-    this.typingSpeed = Math.max(30, duration / text.length);
+    // Clear previous - lightweight
+    this.clear();
+    
+    this.currentText = this.pendingText;
+    this.pendingText = null;
+    this.currentIndex = 0;
+    this.typingSpeed = Math.max(30, (this.pendingDuration || 4000) / this.currentText.length);
     
     this.verseGroup.visible = true;
     this.verseGroup.position.copy(this.position);
@@ -57,6 +65,9 @@ export class VerseAnimationSystem {
     this.lastTime = performance.now();
     this.animateFrame();
   }
+  
+  private pendingText: string | null = null;
+  private pendingDuration: number | null = null;
   
   // Animation loop - uses requestAnimationFrame properly
   private animateFrame() {
@@ -202,8 +213,13 @@ export class VerseAnimationSystem {
     this.currentText = '';
   }
   
-  // Update to face camera
+  // Update to face camera - also process pending animation
   update(camera: THREE.Camera) {
+    // Process any pending animation (deferred from click)
+    if (this.pendingText && !this.isAnimating) {
+      this.processPendingAnimation();
+    }
+    
     if (this.verseGroup.visible && this.sprites.length > 0) {
       this.verseGroup.lookAt(camera.position);
     }
