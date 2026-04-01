@@ -30,8 +30,8 @@ function getAdaptiveConfig() {
   if (isMobile) {
     console.log('📱 Mobile detected - using optimized settings');
     return {
-      density: 1100,           // More words for sea
-      foamCount: 800,         // Less foam dots
+      density: 1200,          // More words to fill bottom
+      foamCount: 600,         // Less foam dots
       pixelRatio: 1,
       bloomResolution: 0.5,
       skipFrames: false
@@ -39,8 +39,8 @@ function getAdaptiveConfig() {
   } else if (isLowEndDevice) {
     console.log('💻 Low-end device detected');
     return {
-      density: 1100,
-      foamCount: 1000,
+      density: 1200,
+      foamCount: 800,
       pixelRatio: 1,
       bloomResolution: 0.75,
       skipFrames: false
@@ -48,8 +48,8 @@ function getAdaptiveConfig() {
   } else {
     console.log('🖥️ High-end device detected');
     return {
-      density: 1400,          // More words
-      foamCount: 1200,       // Less foam dots
+      density: 1500,          // More words
+      foamCount: 1000,       // Less foam dots
       pixelRatio: Math.min(window.devicePixelRatio, 1.5),
       bloomResolution: 1,
       skipFrames: false
@@ -130,10 +130,11 @@ function init(loadedPoems: Poem[]) {
   scene.background = new THREE.Color(0x010108);
   scene.fog = new THREE.FogExp2(0x010108, 0.00035);
   
-  // Camera
-  camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 3000);
-  camera.position.set(0, 250, 700);
-  camera.lookAt(0, 0, -300);
+  // Camera - adjusted for mobile to see more sea at bottom
+  const fov = isMobile ? 75 : 60;
+  camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 1, 3000);
+  camera.position.set(0, 180, 650); // Lower and closer
+  camera.lookAt(0, -50, -250); // Look more down to see bottom
   
   // Renderer - optimized
   renderer = new THREE.WebGLRenderer({ 
@@ -235,6 +236,10 @@ function animate() {
 // ============================================
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
+  // Adjust FOV for mobile
+  if (isMobile) {
+    camera.fov = 75;
+  }
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
   

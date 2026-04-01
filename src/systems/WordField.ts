@@ -24,11 +24,11 @@ export class WordField {
     this.clear();
     
     const allWords = this.extractWords(poems);
-    // Make grid larger to cover more area
-    const gridSize = Math.ceil(Math.sqrt(density)) * 1.3;
+    // Much larger grid to cover bottom of screen
+    const gridSize = Math.ceil(Math.sqrt(density)) * 1.6;
     
-    // Dynamic spacing: higher density = closer words, but cover more area
-    const spacing = Math.max(18, 45 - (density - 400) * 0.015);
+    // Tighter spacing to fill the area
+    const spacing = Math.max(15, 40 - (density - 400) * 0.012);
     const offset = (gridSize * spacing) / 2;
     
     // Measure canvas for character widths
@@ -43,12 +43,12 @@ export class WordField {
         const word = allWords[Math.floor(Math.random() * allWords.length)];
         const wordWidth = measureCtx.measureText(word).width;
         
-        const baseX = x * spacing - offset + (Math.random() - 0.5) * 20;
-        const baseZ = z * spacing - offset + (Math.random() - 0.5) * 20;
+        const baseX = x * spacing - offset + (Math.random() - 0.5) * 15;
+        const baseZ = z * spacing - offset * 1.3 + (Math.random() - 0.5) * 15;
         // More variation in Y for wave effect - waves rise in center, fall at edges
         const centerDist = Math.sqrt(Math.pow(x - gridSize/2, 2) + Math.pow(z - gridSize/2, 2));
-        const centerFactor = 1 - (centerDist / (gridSize * 0.7));
-        const baseY = centerFactor * 30 + (Math.random() - 0.5) * 20;
+        const centerFactor = 1 - (centerDist / (gridSize * 0.6));
+        const baseY = centerFactor * 35 + (Math.random() - 0.5) * 15;
         const depth = (z / gridSize);
         
         // Create sprites for each letter
