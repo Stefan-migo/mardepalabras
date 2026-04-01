@@ -44,62 +44,18 @@ const mouse = { pressed: false, worldX: 0, worldZ: 0 };
 const ripples: { x: number; z: number; time: number; strength: number }[] = [];
 
 // ============================================
-// API - Fetch Poetry
+// Poetry - Curated Latin American Anti-Colonial, Anarchist, Feminist
 // ============================================
+import { curatedPoems } from './data/curatedPoetry';
+
 async function fetchPoetry(): Promise<Poem[]> {
-  const collectedPoems: Poem[] = [];
+  // Use curated poetry library instead of external API
+  // This ensures thematic consistency and avoids network issues
+  console.log('Using curated poetry library');
   
-  const authors = [
-    'Pablo+Neruda', 'Gabriela+Mistral', 'Octavio+Paz',
-    'Sor+Juana+Inés+de+la+Cruz', 'Jorge+Luis+Borges'
-  ];
-  
-  try {
-    for (const author of authors.slice(0, 3)) {
-      try {
-        const response = await fetch(`https://poetrydb.org/author/${author}`);
-        if (response.ok) {
-          const data = await response.json();
-          if (Array.isArray(data)) {
-            data.slice(0, 2).forEach((poem: Record<string, unknown>) => {
-              if (poem.lines && Array.isArray(poem.lines)) {
-                collectedPoems.push({
-                  title: (poem.title as string) || 'Sin título',
-                  author: author.replace(/\+/g, ' '),
-                  lines: poem.lines as string[],
-                  excerpt: (poem.lines as string[]).slice(0, 4).join('\n')
-                });
-              }
-            });
-          }
-        }
-      } catch (e) {
-        console.log(`Error fetching ${author}`);
-      }
-    }
-  } catch {
-    console.error('API failed, using fallback');
-  }
-  
-  // Fallback poems
-  if (collectedPoems.length < 5) {
-    collectedPoems.push(
-      {
-        title: 'Veinte poemas de amor',
-        author: 'Pablo Neruda',
-        lines: ['Puedo escribir los versos más tristes esta noche.', 'Escribir, por ejemplo: "La noche está estrellada"'],
-        excerpt: 'Puedo escribir los versos más tristes esta noche.'
-      },
-      {
-        title: 'Piececitos',
-        author: 'Gabriela Mistral',
-        lines: ['Piececitos de niño,', 'grandes como dos rosas.', 'Piececitos de niño, de la pobleza.'],
-        excerpt: 'Piececitos de niño, grandes como dos rosas.'
-      }
-    );
-  }
-  
-  return collectedPoems;
+  // Shuffle and return curated poems
+  const shuffled = [...curatedPoems].sort(() => Math.random() - 0.5);
+  return shuffled;
 }
 
 // ============================================
@@ -164,6 +120,9 @@ function init(loadedPoems: Poem[]) {
   foamSystem.updateDensity(wordField.getWordCount());
   
   verseAnimation = new VerseAnimationSystem({ scene, camera, renderer, composer, bloomPass });
+  
+  // Set default verse position from config
+  verseAnimation.setPosition(config.verseX, config.verseY, config.verseZ, config.verseScale);
   
   // Setup UI
   setupControls(config, wordField, foamSystem, verseAnimation, bloomPass, noise, poems, showRandomVerse);
@@ -271,8 +230,8 @@ function showRandomVerse() {
     authorEl.textContent = `— ${poem.author}, "${poem.title}"`;
     verseEl.classList.add('visible');
     
-    // Animate in 3D - defer to next frame
-    requestAnimationFrame(() => verseAnimation.animate(verseText, 4000));
+    // Trigger 3D animation - will be processed in animation loop
+    verseAnimation.animate(verseText, 4000);
     
     setTimeout(() => verseEl.classList.remove('visible'), 5000);
   }

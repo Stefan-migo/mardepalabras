@@ -37,6 +37,11 @@ export interface Config {
   letterHue: number;
   letterSaturation: number;
   letterContrast: number;
+  // Verse position (default values)
+  verseX: number;
+  verseY: number;
+  verseZ: number;
+  verseScale: number;
 }
 
 // Ripple physics
@@ -86,5 +91,10 @@ export const defaultConfig: Config = {
   letterOpacity: 0.7,
   letterHue: 0.55,
   letterSaturation: 0.6,
-  letterContrast: 0.6
+  letterContrast: 0.6,
+  // Default verse position - closer to camera
+  verseX: 0,
+  verseY: 80,
+  verseZ: 180,
+  verseScale: 1
 };
