@@ -77,6 +77,10 @@ let config: Config = { ...defaultConfig };
 let poems: Poem[] = [];
 let tiempo = 0;
 
+// Performance mode state
+let performanceMode = false;
+let cameraZoom = 1.0; // 1.0 = normal, >1 = zoomed out (farther camera)
+
 // Simplified mouse state for performance
 const mouse = { pressed: false, worldX: 0, worldZ: 0 };
 const ripples: { x: number; z: number; time: number; strength: number }[] = [];
@@ -210,12 +214,14 @@ function animate() {
   // Update verse animation
   verseAnimation.update(camera);
   
-  // Camera movement - simplified
+  // Camera movement - simplified, with zoom support
   const camTime = tiempo * 0.2;
+  const baseZ = 700 * cameraZoom;
+  const baseX = 150 * cameraZoom;
   camera.position.set(
-    Math.sin(camTime) * 150,
+    Math.sin(camTime) * baseX,
     250 + Math.cos(camTime * 0.5) * 30,
-    700 + Math.cos(camTime) * 80
+    baseZ + Math.cos(camTime) * 80 * cameraZoom
   );
   camera.lookAt(0, 0, -250);
   
@@ -292,6 +298,78 @@ window.addEventListener('mousedown', () => {
 
 window.addEventListener('mouseup', () => {
   mouse.pressed = false;
+});
+
+// ============================================
+// Performance Mode & Mobile Controls
+// ============================================
+
+// Performance mode toggle
+document.getElementById('performance-mode-btn')?.addEventListener('click', () => {
+  performanceMode = !performanceMode;
+  const btn = document.getElementById('performance-mode-btn');
+  if (btn) {
+    btn.textContent = performanceMode ? '✓ Performance' : '⚡ Performance';
+    btn.style.background = performanceMode ? 'rgba(99, 102, 241, 0.5)' : 'rgba(10, 10, 20, 0.7)';
+  }
+  
+  if (performanceMode) {
+    // Apply performance settings
+    console.log('Performance mode ON');
+    wordField.clear();
+    wordField.create(poems, 300); // Reduced density
+    foamSystem.recreate(1000); // Reduced foam
+    bloomPass.strength = 0.3; // Reduced bloom
+  } else {
+    // Restore normal settings
+    console.log('Performance mode OFF');
+    wordField.clear();
+    wordField.create(poems, adaptiveConfig.density);
+    foamSystem.recreate(adaptiveConfig.foamCount);
+    bloomPass.strength = 0.5;
+  }
+});
+
+// Mobile menu toggle
+let mobileMenuOpen = false;
+document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
+  mobileMenuOpen = !mobileMenuOpen;
+  const panel = document.getElementById('mobile-controls');
+  const btn = document.getElementById('mobile-menu-btn');
+  if (panel && btn) {
+    panel.classList.toggle('visible', mobileMenuOpen);
+    btn.textContent = mobileMenuOpen ? '✕' : '☰';
+    btn.style.background = mobileMenuOpen ? 'rgba(99, 102, 241, 0.5)' : 'rgba(10, 10, 20, 0.5)';
+  }
+});
+
+// Camera zoom control (mobile)
+document.getElementById('camera-zoom-slider')?.addEventListener('input', (e) => {
+  const target = e.target as HTMLInputElement;
+  cameraZoom = parseFloat(target.value);
+  console.log('Camera zoom:', cameraZoom);
+});
+
+// Mobile speed control
+document.getElementById('mobile-speed-slider')?.addEventListener('input', (e) => {
+  const target = e.target as HTMLInputElement;
+  config.speed = parseFloat(target.value);
+  console.log('Speed:', config.speed);
+});
+
+// Mobile wave control
+document.getElementById('mobile-wave-slider')?.addEventListener('input', (e) => {
+  const target = e.target as HTMLInputElement;
+  config.waveAmplitude = parseFloat(target.value);
+  console.log('Wave amplitude:', config.waveAmplitude);
+});
+
+// Mobile letter bloom control
+document.getElementById('mobile-letter-bloom')?.addEventListener('input', (e) => {
+  const target = e.target as HTMLInputElement;
+  config.letterBloom = parseFloat(target.value);
+  bloomPass.strength = config.letterBloom;
+  console.log('Letter bloom:', config.letterBloom);
 });
 
 // Cache DOM elements to avoid repeated lookups

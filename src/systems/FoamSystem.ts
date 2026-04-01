@@ -92,4 +92,28 @@ export class FoamSystem {
     this.material.dispose();
     this.scene.remove(this.particles);
   }
+  
+  // Recreate with new particle count (for performance mode)
+  recreate(newCount: number) {
+    this.dispose();
+    this.particleCount = newCount;
+    this.activeCount = newCount;
+    this.positions = new Float32Array(newCount * 3);
+    this.basePositions = new Float32Array(newCount * 3);
+    this.geometry = new THREE.BufferGeometry();
+    this.geometry.setAttribute('position', new THREE.BufferAttribute(this.positions, 3));
+    this.geometry.setDrawRange(0, newCount);
+    this.material = new THREE.PointsMaterial({
+      color: 0x88aaff,
+      size: 1.2,
+      transparent: true,
+      opacity: 0.25,
+      sizeAttenuation: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+    this.particles = new THREE.Points(this.geometry, this.material);
+    this.initializeParticles();
+    this.scene.add(this.particles);
+  }
 }
