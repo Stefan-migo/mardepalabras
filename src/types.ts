@@ -56,6 +56,13 @@ export interface MouseState {
   worldZ: number;
 }
 
+// Simplified mouse for performance-critical updates
+export interface SimpleMouse {
+  pressed: boolean;
+  worldX: number;
+  worldZ: number;
+}
+
 // Scene references (exported from core)
 export interface SceneRefs {
   scene: THREE.Scene;

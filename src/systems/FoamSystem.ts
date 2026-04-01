@@ -68,6 +68,10 @@ export class FoamSystem {
   
   // Update particle positions with wave motion
   update(time: number, waveFn: (x: number, z: number) => number) {
+    const sin05 = Math.sin(time * 0.5);
+    const sin2 = Math.sin(time * 2);
+    const cos03 = Math.cos(time * 0.3);
+    
     for (let i = 0; i < this.activeCount; i++) {
       const i3 = i * 3;
       const x = this.basePositions[i3];
@@ -75,9 +79,9 @@ export class FoamSystem {
       
       const waveY = waveFn(x * 0.008, z * 0.008) * 0.3;
       
-      this.positions[i3] = x + Math.sin(time * 0.5 + i * 0.01) * 2;
-      this.positions[i3 + 1] = waveY + Math.sin(time * 2 + i * 0.1) * 1;
-      this.positions[i3 + 2] = z + Math.cos(time * 0.3 + i * 0.02) * 2;
+      this.positions[i3] = x + sin05 * 2;
+      this.positions[i3 + 1] = waveY + sin2;
+      this.positions[i3 + 2] = z + cos03 * 2;
     }
     
     this.geometry.attributes.position.needsUpdate = true;

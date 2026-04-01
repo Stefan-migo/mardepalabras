@@ -39,8 +39,8 @@ let config: Config = { ...defaultConfig };
 let poems: Poem[] = [];
 let tiempo = 0;
 
-// Mouse
-const mouse = { x: 0, y: 0, pressed: false, worldX: 0, worldZ: 0 };
+// Simplified mouse state for performance
+const mouse = { pressed: false, worldX: 0, worldZ: 0 };
 const ripples: { x: number; z: number; time: number; strength: number }[] = [];
 
 // ============================================
@@ -218,10 +218,10 @@ window.addEventListener('resize', () => {
 });
 
 window.addEventListener('mousemove', (e) => {
-  mouse.x = (e.clientX / window.innerWidth - 0.5) * 2;
-  mouse.y = (e.clientY / window.innerHeight - 0.5) * 2;
-  mouse.worldX = mouse.x * 500;
-  mouse.worldZ = mouse.y * 500 - 300;
+  const x = (e.clientX / window.innerWidth - 0.5) * 2;
+  const y = (e.clientY / window.innerHeight - 0.5) * 2;
+  mouse.worldX = x * 500;
+  mouse.worldZ = y * 500 - 300;
 });
 
 window.addEventListener('mousedown', () => {
