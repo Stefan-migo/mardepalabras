@@ -82,7 +82,7 @@ export type NoiseFn = (x: number, z: number, time: number, amp: number) => numbe
 
 // Default config
 export const defaultConfig: Config = {
-  speed: 0.07,
+  speed: 0.04,
   waveAmplitude: 50, // Reduced from 60 for performance
   density: 800, // Reduced from 1000 for performance
   fontSize: 14,

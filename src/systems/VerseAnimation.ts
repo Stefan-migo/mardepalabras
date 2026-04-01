@@ -22,7 +22,7 @@ export class VerseAnimationSystem {
   // Configurable position - further away for mobile for 3 lines max
   private position: THREE.Vector3 = new THREE.Vector3(0, isMobile ? 380 : 100, isMobile ? 380 : 200);
   private scale: number = isMobile ? 2.2 : 1; // Larger scale
-  private letterSpacing: number = isMobile ? 20 : 14; // Wider spacing for bigger letters
+  private letterSpacing: number = isMobile ? 14 : 14; // Tighter letter spacing
   private lineHeight: number = isMobile ? 42 : 22; // Line height for 3 lines
   
   // Texture quality - higher on mobile
