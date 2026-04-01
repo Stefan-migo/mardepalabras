@@ -75,11 +75,13 @@ export class VerseAnimationSystem {
   processPendingAnimation() {
     if (!this.pendingText) return;
     
-    // Clear previous - lightweight
+    // ALWAYS clear first - remove any old sprites and stop old animation
+    this.isAnimating = false;
     this.clear();
     
     this.currentText = this.pendingText;
     this.pendingText = null;
+    this.currentIndex = 0;
     
     // Auto-wrap on mobile FIRST (before calculating typing speed)
     if (isMobile) {
@@ -97,13 +99,12 @@ export class VerseAnimationSystem {
     this.verseGroup.position.copy(this.position);
     this.verseGroup.scale.set(this.scale, this.scale, this.scale);
     
+    // Reset timing and START fresh animation
+    this.isAnimating = true;
     this.lastTime = performance.now();
-    this.animateFrame();
     
-    // Start floating animation on mobile
-    if (isMobile) {
-      setTimeout(() => this.animateFloating(), 2000);
-    }
+    console.log('Starting fresh animation loop');
+    this.animateFrame();
   }
 
   private pendingText: string | null = null;
@@ -286,14 +287,15 @@ export class VerseAnimationSystem {
   
   // Update to face camera - also process pending animation
   update(camera: THREE.Camera) {
-    // Process any pending animation (deferred from click)
-    // Process immediately if there's pending text OR if we need to restart
-    if (this.pendingText && !this.isAnimating) {
-      this.isAnimating = true;
-      this.processPendingAnimation();
-    } else if (this.pendingText) {
-      // Already animating, just process
-      this.processPendingAnimation();
+    // Only process if there's pending text
+    if (this.pendingText) {
+      // Stop any existing animation first
+      this.isAnimating = false;
+      
+      // Small delay to let old animation clean up
+      setTimeout(() => {
+        this.processPendingAnimation();
+      }, 50);
     }
     
     if (this.verseGroup.visible && this.sprites.length > 0) {
