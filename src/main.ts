@@ -151,15 +151,11 @@ function animate() {
     if (ripples[i].time === -1) ripples.splice(i, 1);
   }
   
-  // Update word field (every 2nd frame for performance)
-  if (Math.floor(tiempo * 60) % 2 === 0) {
-    wordField.update(tiempo, noise.oceanWaves.bind(noise), config.waveAmplitude, mouse);
-  }
+  // Update word field - every frame for smooth animation
+  wordField.update(tiempo, noise.oceanWaves.bind(noise), config.waveAmplitude, mouse);
   
-  // Update foam (every 3rd frame to save CPU)
-  if (Math.floor(tiempo * 60) % 3 === 0) {
-    foamSystem.update(tiempo, (x, z) => noise.oceanWaves(x, z, tiempo, config.waveAmplitude));
-  }
+  // Update foam - every frame for smooth animation
+  foamSystem.update(tiempo, (x, z) => noise.oceanWaves(x, z, tiempo, config.waveAmplitude));
   
   // Update verse animation
   verseAnimation.update(camera);
