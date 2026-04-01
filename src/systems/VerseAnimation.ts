@@ -19,11 +19,11 @@ export class VerseAnimationSystem {
   private textureCache: Map<string, THREE.Texture> = new Map();
   private scene: THREE.Scene;
   
-  // Configurable position - push further away for mobile to fit all lines
-  private position: THREE.Vector3 = new THREE.Vector3(0, isMobile ? 280 : 100, isMobile ? 350 : 200);
-  private scale: number = isMobile ? 2.0 : 1; // Smaller scale to fit 4 lines on screen
-  private letterSpacing: number = isMobile ? 18 : 14; // Tighter spacing
-  private lineHeight: number = isMobile ? 40 : 22; // Smaller line height for 4 lines
+  // Configurable position - higher up for mobile to see 3 lines
+  private position: THREE.Vector3 = new THREE.Vector3(0, isMobile ? 350 : 100, isMobile ? 300 : 200);
+  private scale: number = isMobile ? 1.8 : 1; // Smaller scale for 3 lines
+  private letterSpacing: number = isMobile ? 16 : 14; // Tighter spacing
+  private lineHeight: number = isMobile ? 36 : 22; // Line height for 3 lines
   
   // Texture quality - higher on mobile
   private textureSize: number = isMobile ? 128 : 48;
@@ -164,12 +164,12 @@ export class VerseAnimationSystem {
     const x = (charInLine - this.getLongestLineLength(lines) / 2) * this.letterSpacing;
     // First line starts higher, each subsequent line is below
     const y = isMobile 
-      ? -lineIndex * this.lineHeight + 30  // Offset first line up by 30
+      ? -lineIndex * this.lineHeight + 25  // Offset first line up by 25
       : -lineIndex * this.lineHeight;
     
     // Scale is already adjusted for mobile via this.scale
     sprite.position.set(x, y, 0);
-    sprite.scale.set(18, 24, 1); // Smaller letters to fit 4 lines
+    sprite.scale.set(16, 22, 1); // Smaller letters to fit 3 lines
     
     this.verseGroup.add(sprite);
     this.sprites.push(sprite);
