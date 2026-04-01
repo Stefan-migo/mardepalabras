@@ -10,12 +10,20 @@
     body { 
       background: #010105; 
       overflow: hidden;
+      -webkit-overflow-scrolling: none;
       font-family: 'Space Mono', monospace;
+    }
+    body.mobile {
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+      height: 100%;
     }
     #canvas-container {
       width: 100vw;
       height: 100vh;
       display: block;
+      touch-action: none;
     }
     #loading {
       position: fixed;
@@ -390,20 +398,20 @@
     /* Show mobile menu button only on mobile */
     @media (max-width: 768px) {
       #performance-mode-btn {
-        top: 20px;
-        right: 20px;
-        font-size: 9px;
-        padding: 6px 10px;
+        display: none !important;
       }
       
       #mobile-menu-btn {
         display: flex !important;
         align-items: center;
         justify-content: center;
+        pointer-events: auto !important;
+        touch-action: manipulation;
       }
       
       #mobile-controls {
         display: none;
+        pointer-events: auto;
       }
       
       #mobile-controls.visible {
@@ -414,6 +422,12 @@
   </style>
 </head>
 <body>
+  <script>
+    // Detect mobile and add class to body for better touch handling
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+      document.body.classList.add('mobile');
+    }
+  </script>
   <div id="canvas-container"></div>
   
   <div id="loading">
