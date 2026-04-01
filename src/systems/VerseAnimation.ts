@@ -1,0 +1,215 @@
+// ============================================
+// Verse 3D Animation System - Fixed for smooth animation
+// ============================================
+
+import * as THREE from 'three';
+import type { SceneRefs } from '../types';
+
+export class VerseAnimationSystem {
+  private verseGroup: THREE.Group;
+  private sprites: THREE.Sprite[] = [];
+  private isAnimating: boolean = false;
+  private currentText: string = '';
+  private currentIndex: number = 0;
+  private typingSpeed: number = 50; // ms per char - faster
+  private lastTime: number = 0;
+  private textureCache: Map<string, THREE.Texture> = new Map();
+  private scene: THREE.Scene;
+  
+  // Configurable position
+  private position: THREE.Vector3 = new THREE.Vector3(0, 100, 200);
+  private scale: number = 1;
+  private letterSpacing: number = 14;
+  private lineHeight: number = 22;
+  
+  constructor(sceneRefs: SceneRefs) {
+    this.scene = sceneRefs.scene;
+    this.verseGroup = new THREE.Group();
+    this.verseGroup.position.copy(this.position);
+    this.verseGroup.visible = false;
+    this.scene.add(this.verseGroup);
+  }
+  
+  // Set position
+  setPosition(x: number, y: number, z: number, scale: number = 1) {
+    this.position.set(x, y, z);
+    this.scale = scale;
+    this.verseGroup.position.copy(this.position);
+    this.verseGroup.scale.set(scale, scale, scale);
+  }
+  
+  // Animate verse with smooth typing
+  animate(text: string, duration: number = 4000) {
+    if (this.isAnimating) return;
+    
+    this.clear();
+    this.currentText = text;
+    this.currentIndex = 0;
+    this.isAnimating = true;
+    
+    // Calculate typing speed based on text length and desired duration
+    this.typingSpeed = Math.max(30, duration / text.length);
+    
+    this.verseGroup.visible = true;
+    this.verseGroup.position.copy(this.position);
+    this.verseGroup.scale.set(this.scale, this.scale, this.scale);
+    
+    this.lastTime = performance.now();
+    this.animateFrame();
+  }
+  
+  // Animation loop - uses requestAnimationFrame properly
+  private animateFrame() {
+    if (!this.isAnimating) return;
+    
+    const now = performance.now();
+    const elapsed = now - this.lastTime;
+    
+    if (elapsed >= this.typingSpeed) {
+      this.lastTime = now;
+      
+      if (this.currentIndex < this.currentText.length) {
+        const char = this.currentText[this.currentIndex];
+        this.addCharacter(char, this.currentIndex);
+        this.currentIndex++;
+      } else {
+        this.finishAnimation();
+        return;
+      }
+    }
+    
+    // Continue animation loop
+    requestAnimationFrame(() => this.animateFrame());
+  }
+  
+  // Add character efficiently
+  private addCharacter(char: string, index: number) {
+    // Skip newlines for now (handled by position calc)
+    if (char === '\n') return;
+    
+    // Get or create texture
+    let texture = this.textureCache.get(char);
+    if (!texture) {
+      texture = this.createTexture(char);
+      this.textureCache.set(char, texture);
+    }
+    
+    const material = new THREE.SpriteMaterial({
+      map: texture,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      color: new THREE.Color().setHSL(0.58, 0.7, 0.7)
+    });
+    
+    const sprite = new THREE.Sprite(material);
+    
+    // Calculate position - center the text
+    const lines = this.currentText.split('\n');
+    const lineIndex = this.currentText.substring(0, index).split('\n').length - 1;
+    
+    // Find position of this character in current line
+    const lineStart = this.currentText.lastIndexOf('\n', index - 1) + 1;
+    const charInLine = index - lineStart;
+    
+    const x = (charInLine - this.getLongestLineLength(lines) / 2) * this.letterSpacing;
+    const y = -lineIndex * this.lineHeight;
+    
+    sprite.position.set(x, y, 0);
+    sprite.scale.set(20, 28, 1);
+    
+    this.verseGroup.add(sprite);
+    this.sprites.push(sprite);
+    
+    // Animate in
+    this.animateSpriteIn(sprite, material);
+  }
+  
+  // Get length of longest line for centering
+  private getLongestLineLength(lines: string[]): number {
+    return Math.max(...lines.map(l => l.length));
+  }
+  
+  // Smooth fade-in animation
+  private animateSpriteIn(sprite: THREE.Sprite, material: THREE.SpriteMaterial) {
+    const startTime = performance.now();
+    const duration = 80;
+    
+    const animate = () => {
+      if (!this.isAnimating) return;
+      
+      const elapsed = performance.now() - startTime;
+      const t = Math.min(1, elapsed / duration);
+      
+      // Ease out
+      const ease = 1 - Math.pow(1 - t, 3);
+      material.opacity = ease * 0.9;
+      
+      const scale = 20 * (1 + (1 - ease) * 0.2);
+      sprite.scale.set(scale, 28 * (1 + (1 - ease) * 0.2), 1);
+      
+      if (t < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+    
+    animate();
+  }
+  
+  // Create texture for character
+  private createTexture(char: string): THREE.Texture {
+    const size = 48;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d')!;
+    
+    ctx.clearRect(0, 0, size, size);
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `bold ${size * 0.55}px "Crimson Pro", Georgia, serif`;
+    ctx.shadowColor = 'rgba(200, 180, 255, 0.5)';
+    ctx.shadowBlur = size * 0.08;
+    ctx.fillText(char, size / 2, size / 2);
+    
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    return texture;
+  }
+  
+  private finishAnimation() {
+    this.isAnimating = false;
+    
+    // Auto-hide after delay
+    setTimeout(() => {
+      if (!this.isAnimating) {
+        this.clear();
+      }
+    }, 5000);
+  }
+  
+  // Clear all sprites
+  clear() {
+    this.sprites.forEach(sprite => {
+      this.verseGroup.remove(sprite);
+      sprite.material.dispose();
+      (sprite.material as THREE.SpriteMaterial).map?.dispose();
+    });
+    this.sprites = [];
+    this.verseGroup.visible = false;
+    this.currentText = '';
+  }
+  
+  // Update to face camera
+  update(camera: THREE.Camera) {
+    if (this.verseGroup.visible && this.sprites.length > 0) {
+      this.verseGroup.lookAt(camera.position);
+    }
+  }
+  
+  getIsAnimating(): boolean {
+    return this.isAnimating;
+  }
+}
