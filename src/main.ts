@@ -30,8 +30,8 @@ function getAdaptiveConfig() {
   if (isMobile) {
     console.log('📱 Mobile detected - using optimized settings');
     return {
-      density: 400,           // Fewer words
-      foamCount: 2000,       // Less foam  
+      density: 600,           // More words for denser sea
+      foamCount: 3000,       // More foam  
       pixelRatio: 1,          // Lower resolution
       bloomResolution: 0.5,  // Lower bloom quality
       skipFrames: false      // But still smooth
