@@ -426,12 +426,18 @@ document.getElementById('mobile-wave-slider')?.addEventListener('input', (e) => 
   console.log('Wave amplitude:', config.waveAmplitude);
 });
 
-// Mobile letter bloom control
-document.getElementById('mobile-letter-bloom')?.addEventListener('input', (e) => {
+// Mobile density control
+document.getElementById('mobile-density-slider')?.addEventListener('input', (e) => {
   const target = e.target as HTMLInputElement;
-  config.letterBloom = parseFloat(target.value);
-  bloomPass.strength = config.letterBloom;
-  console.log('Letter bloom:', config.letterBloom);
+  const newDensity = parseInt(target.value);
+  console.log('Density:', newDensity);
+  
+  // Recreate word field with new density
+  wordField.clear();
+  wordField.create(poems, newDensity);
+  
+  // Update foam density accordingly
+  foamSystem.updateDensity(newDensity);
 });
 
 // Mobile camera Y (height) control

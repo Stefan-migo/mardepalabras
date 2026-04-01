@@ -96,6 +96,11 @@ export class VerseAnimationSystem {
     
     this.lastTime = performance.now();
     this.animateFrame();
+    
+    // Start floating animation on mobile
+    if (isMobile) {
+      setTimeout(() => this.animateFloating(), 2000);
+    }
   }
   
   private pendingText: string | null = null;
@@ -176,30 +181,67 @@ export class VerseAnimationSystem {
     return Math.max(...lines.map(l => l.length));
   }
   
-  // Smooth fade-in animation
+  // Professional multi-effect animation for mobile
   private animateSpriteIn(sprite: THREE.Sprite, material: THREE.SpriteMaterial) {
     const startTime = performance.now();
-    const duration = 80;
+    const duration = isMobile ? 150 : 100;
+    const delay = this.sprites.length * (isMobile ? 20 : 10);
     
     const animate = () => {
       if (!this.isAnimating) return;
       
-      const elapsed = performance.now() - startTime;
+      const elapsed = performance.now() - startTime - delay;
+      if (elapsed < 0) {
+        requestAnimationFrame(animate);
+        return;
+      }
+      
       const t = Math.min(1, elapsed / duration);
       
-      // Ease out
-      const ease = 1 - Math.pow(1 - t, 3);
-      material.opacity = ease * 0.9;
+      // Multiple easing effects
+      const easeOutElastic = t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * (2 * Math.PI) / 3) + 1;
+      const easeOutQuad = 1 - (1 - t) * (1 - t);
+      const easeOut = easeOutQuad;
       
-      const scale = 20 * (1 + (1 - ease) * 0.2);
-      sprite.scale.set(scale, 28 * (1 + (1 - ease) * 0.2), 1);
+      // Scale with elastic bounce
+      const scaleMultiplier = isMobile ? 1.5 : 1;
+      const baseScale = 20 * scaleMultiplier;
+      const scale = baseScale * (0.3 + easeOutElastic * 0.7) * (1 + (1 - easeOut) * 0.15);
+      sprite.scale.set(scale, scale * 1.4, 1);
       
-      if (t < 1) {
+      // Opacity with smooth fade in
+      material.opacity = easeOut * 0.95;
+      
+      // Color cycling on mobile - subtle hue shift
+      if (isMobile) {
+        const hue = 0.58 + Math.sin(t * Math.PI) * 0.1;
+        material.color.setHSL(hue % 1, 0.8, 0.7);
+      }
+      
+      // Add subtle floating offset
+      if (t >= 1) {
+        sprite.position.y += Math.sin(performance.now() * 0.003) * 0.3;
+      }
+      
+      if (t < 1 || isMobile) {
         requestAnimationFrame(animate);
       }
     };
     
     animate();
+  }
+  
+  // Continuous floating animation for all sprites
+  private animateFloating() {
+    if (!this.isAnimating || this.sprites.length === 0) return;
+    
+    const time = performance.now() * 0.001;
+    this.sprites.forEach((sprite, i) => {
+      const offset = i * 0.1;
+      sprite.position.y += Math.sin(time + offset) * 0.2;
+    });
+    
+    requestAnimationFrame(() => this.animateFloating());
   }
   
   // Create texture for character - higher quality on mobile
