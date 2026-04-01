@@ -30,17 +30,17 @@ function getAdaptiveConfig() {
   if (isMobile) {
     console.log('📱 Mobile detected - using optimized settings');
     return {
-      density: 600,           // More words for denser sea
-      foamCount: 3000,       // More foam  
-      pixelRatio: 1,          // Lower resolution
-      bloomResolution: 0.5,  // Lower bloom quality
-      skipFrames: false      // But still smooth
+      density: 800,           // More words for fuller sea
+      foamCount: 4000,       // More foam  
+      pixelRatio: 1,
+      bloomResolution: 0.5,
+      skipFrames: false
     };
   } else if (isLowEndDevice) {
     console.log('💻 Low-end device detected');
     return {
-      density: 600,
-      foamCount: 3000,
+      density: 800,
+      foamCount: 4000,
       pixelRatio: 1,
       bloomResolution: 0.75,
       skipFrames: false
@@ -48,8 +48,8 @@ function getAdaptiveConfig() {
   } else {
     console.log('🖥️ High-end device detected');
     return {
-      density: 800,
-      foamCount: 5000,
+      density: 1000,
+      foamCount: 6000,
       pixelRatio: Math.min(window.devicePixelRatio, 1.5),
       bloomResolution: 1,
       skipFrames: false
@@ -79,7 +79,7 @@ let tiempo = 0;
 
 // Performance mode state
 let performanceMode = false;
-let cameraZoom = 1.4; // 1.0 = normal, >1 = zoomed out (farther camera)
+let cameraZoom = 1.3; // 1.0 = normal, >1 = zoomed out (farther camera)
 let cameraY = 250; // Camera height (Y position)
 
 // Simplified mouse state for performance

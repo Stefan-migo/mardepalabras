@@ -24,11 +24,11 @@ export class WordField {
     this.clear();
     
     const allWords = this.extractWords(poems);
-    const gridSize = Math.ceil(Math.sqrt(density));
+    // Make grid larger to cover more area
+    const gridSize = Math.ceil(Math.sqrt(density)) * 1.3;
     
-    // Dynamic spacing: higher density = closer words
-    // At 400 density: spacing ~50, at 1500 density: spacing ~25
-    const spacing = Math.max(25, 50 - (density - 400) * 0.02);
+    // Dynamic spacing: higher density = closer words, but cover more area
+    const spacing = Math.max(18, 45 - (density - 400) * 0.015);
     const offset = (gridSize * spacing) / 2;
     
     // Measure canvas for character widths
@@ -147,8 +147,8 @@ export class WordField {
       const word = this.words[w];
       const { sprites, baseX, baseY, baseZ, depth } = word;
       
-      // Skip far words (depth > 0.8) - they're barely visible anyway
-      if (depth > 0.85) continue;
+      // Only skip very far words (depth > 0.95)
+      if (depth > 0.95) continue;
       
       const depthFactor = 1 - (depth * 0.35);
       const waveHeight = waveFn(baseX * 0.008, baseZ * 0.008, timeFactor * depthFactor, amp);
