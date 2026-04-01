@@ -123,53 +123,52 @@ export class WordField {
     return sprites;
   }
   
-  // Update word positions (called each frame)
+  // Update word positions - HIGHLY OPTIMIZED
   update(time: number, waveFn: (x: number, z: number, time: number, amp: number) => number, amp: number, mouse: SimpleMouse) {
     const timeFactor = time * 0.7;
     const mouseActive = mouse.pressed;
     const mouseX = mouse.worldX;
     const mouseZ = mouse.worldZ;
     const mouseRadiusSq = 250 * 250;
-    const mouseCheckRadius = 300; // Skip words beyond this
+    const mouseCheckRadius = 250;
     
-    // Pre-calculate sin/cos values
-    const sinTime05 = Math.sin(time * 0.5);
+    // Pre-calculate once
+    const sinTime = Math.sin(time * 0.5);
     const wordCount = this.words.length;
+    const ampFactor = amp * 0.08;
     
     for (let w = 0; w < wordCount; w++) {
       const word = this.words[w];
       const { sprites, baseX, baseY, baseZ, depth } = word;
-      const depthFactor = 1 - depth * 0.4;
       
-      // Single wave calculation per word
+      // Skip far words (depth > 0.8) - they're barely visible anyway
+      if (depth > 0.85) continue;
+      
+      const depthFactor = 1 - (depth * 0.35);
       const waveHeight = waveFn(baseX * 0.008, baseZ * 0.008, timeFactor * depthFactor, amp);
       
-      // Optimized mouse effect with spatial check
+      // Mouse effect - only when pressed
       let mouseEffect = 0;
-      if (mouseActive) {
-        // Quick bounds check before calculating distance
-        if (Math.abs(baseX - mouseX) < mouseCheckRadius && Math.abs(baseZ - mouseZ) < mouseCheckRadius) {
-          const dx = baseX - mouseX;
-          const dz = baseZ - mouseZ;
-          const distSq = dx * dx + dz * dz;
-          
-          if (distSq < mouseRadiusSq) {
-            const factor = 1 - (distSq / mouseRadiusSq);
-            mouseEffect = factor * 150;
-          }
+      if (mouseActive && Math.abs(baseX - mouseX) < mouseCheckRadius && Math.abs(baseZ - mouseZ) < mouseCheckRadius) {
+        const dx = baseX - mouseX;
+        const dz = baseZ - mouseZ;
+        const distSq = dx * dx + dz * dz;
+        if (distSq < mouseRadiusSq) {
+          mouseEffect = (1 - distSq / mouseRadiusSq) * 100;
         }
       }
       
       const baseOffset = baseY + waveHeight + mouseEffect;
-      const sinBaseX = Math.sin(baseX * 0.005);
-      const zOffset = baseZ + sinTime05 * sinBaseX * 3;
+      const sinBaseX = Math.sin(baseX * 0.003);
+      const zOffset = baseZ + sinTime * sinBaseX * 2;
       
-      // Update each letter
+      // Update letters - use simpler math
       const spriteCount = sprites.length;
+      const timeOffset = time;
       for (let i = 0; i < spriteCount; i++) {
         const sprite = sprites[i];
-        const letterWave = Math.sin(i * 0.5 + time) * amp * 0.08;
-        
+        // Replace sin with simple wave
+        const letterWave = Math.sin(i * 0.3 + timeOffset) * ampFactor;
         sprite.position.y = baseOffset + letterWave;
         sprite.position.z = zOffset;
       }

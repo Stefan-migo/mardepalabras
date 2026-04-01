@@ -82,19 +82,19 @@ export type NoiseFn = (x: number, z: number, time: number, amp: number) => numbe
 
 // Default config
 export const defaultConfig: Config = {
-  speed: 0.04,
-  waveAmplitude: 60,
-  density: 1000,
+  speed: 0.07,
+  waveAmplitude: 50, // Reduced from 60 for performance
+  density: 800, // Reduced from 1000 for performance
   fontSize: 14,
   letterSize: 14,
-  letterBloom: 0.5,
+  letterBloom: 0.6,
   letterOpacity: 0.7,
-  letterHue: 0.55,
-  letterSaturation: 0.6,
-  letterContrast: 0.6,
-  // Default verse position - closer to camera
+  letterHue: 0.71,
+  letterSaturation: 0.45,
+  letterContrast: 0.4,
+  // Verse position - optimal from user testing
   verseX: 0,
-  verseY: 80,
-  verseZ: 180,
-  verseScale: 1
+  verseY: 260,
+  verseZ: 100,
+  verseScale: 1.2
 };
