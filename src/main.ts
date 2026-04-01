@@ -349,16 +349,39 @@ document.getElementById('performance-mode-btn')?.addEventListener('click', () =>
 
 // Mobile menu toggle
 let mobileMenuOpen = false;
-document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
+
+function toggleMobileMenu() {
   mobileMenuOpen = !mobileMenuOpen;
   const panel = document.getElementById('mobile-controls');
   const btn = document.getElementById('mobile-menu-btn');
+  console.log('Mobile menu toggle:', mobileMenuOpen);
   if (panel && btn) {
-    panel.classList.toggle('visible', mobileMenuOpen);
-    btn.textContent = mobileMenuOpen ? '✕' : '☰';
-    btn.style.background = mobileMenuOpen ? 'rgba(99, 102, 241, 0.5)' : 'rgba(10, 10, 20, 0.5)';
+    if (mobileMenuOpen) {
+      panel.style.display = 'block';
+      btn.textContent = '✕';
+      btn.style.background = 'rgba(99, 102, 241, 0.7)';
+    } else {
+      panel.style.display = 'none';
+      btn.textContent = '☰';
+      btn.style.background = 'rgba(10, 10, 20, 0.7)';
+    }
   }
-});
+}
+
+// Add both click and touchstart listeners for mobile menu
+const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+if (mobileMenuBtn) {
+  mobileMenuBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleMobileMenu();
+  });
+  mobileMenuBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleMobileMenu();
+  }, { passive: false });
+}
 
 // Camera zoom control (mobile)
 document.getElementById('camera-zoom-slider')?.addEventListener('input', (e) => {
