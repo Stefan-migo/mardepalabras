@@ -508,13 +508,11 @@ document.getElementById('mobile-camera-y')?.addEventListener('input', (e) => {
 });
 
 // Cache DOM elements to avoid repeated lookups
-let verseDisplayEl: HTMLElement | null = null;
 let authorDisplayEl: HTMLElement | null = null;
 
 function getVerseElements() {
-  if (!verseDisplayEl) verseDisplayEl = document.getElementById('verse-display');
   if (!authorDisplayEl) authorDisplayEl = document.getElementById('author-display');
-  return { verseEl: verseDisplayEl, authorEl: authorDisplayEl };
+  return { authorEl: authorDisplayEl };
 }
 
 // Track shown poems to avoid repetition
@@ -542,18 +540,17 @@ function showRandomVerse() {
   shownPoemIndices.add(randomIndex);
   
   const poem = poems[randomIndex];
-  const { verseEl, authorEl } = getVerseElements();
+  const { authorEl } = getVerseElements();
   
-  if (verseEl && authorEl) {
+  // Only show author (verse appears in 3D animation)
+  if (authorEl) {
+    authorEl.textContent = `— ${poem.author}`;
+    
+    // Get verse text for 3D animation
     const verseText = poem.excerpt || poem.lines[0];
-    verseEl.textContent = verseText;
-    authorEl.textContent = `— ${poem.author}, "${poem.title}"`;
-    verseEl.classList.add('visible');
     
     // Trigger 3D animation - will be processed in animation loop
     verseAnimation.animate(verseText);
-    
-    setTimeout(() => verseEl.classList.remove('visible'), 5000);
   }
 }
 
