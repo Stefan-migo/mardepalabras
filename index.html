@@ -57,14 +57,6 @@
       pointer-events: none;
       max-width: 500px;
     }
-    #info h1 {
-      font-family: 'Crimson Pro', serif;
-      font-size: 28px;
-      font-weight: 400;
-      color: #fff;
-      letter-spacing: 3px;
-      margin-bottom: 8px;
-    }
     #info .verse {
       font-family: 'Crimson Pro', serif;
       font-style: italic;
@@ -336,16 +328,6 @@
         max-width: none;
       }
       
-      #info h1 {
-        font-size: 18px;
-        letter-spacing: 2px;
-      }
-      
-      #info p {
-        font-size: 11px;
-        opacity: 0.7;
-      }
-      
       #hint {
         top: 20px;
         left: 20px;
@@ -374,14 +356,6 @@
     
     /* Very small screens */
     @media (max-width: 400px) {
-      #info h1 {
-        font-size: 14px;
-      }
-      
-      #info p {
-        font-size: 10px;
-      }
-      
       #mobile-controls {
         width: 160px !important;
         right: 15px !important;
@@ -447,8 +421,6 @@
   <div id="tap-hint" style="display: none;">Toca para revelar poesía</div>
   
   <div id="info">
-    <h1>MAR DE PALABRAS</h1>
-    <p>Poesía latinoamericana emergida del océano digital</p>
     <div class="verse" id="verse-display"></div>
     <div class="author" id="author-display"></div>
   </div>
@@ -522,7 +494,7 @@
     <label style="color: rgba(255,255,255,0.5); font-size: 10px; margin-bottom: 2px; display: block;">
       Zoom (Alejar)
     </label>
-    <input type="range" id="camera-zoom-slider" min="1" max="3" step="0.1" value="1.8" style="
+    <input type="range" id="camera-zoom-slider" min="1" max="3" step="0.1" value="1.4" style="
       width: 100%;
       accent-color: #6366f1;
       margin-bottom: 12px;
