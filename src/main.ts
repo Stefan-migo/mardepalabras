@@ -523,7 +523,7 @@ function showRandomVerse() {
     verseEl.classList.add('visible');
     
     // Trigger 3D animation - will be processed in animation loop
-    verseAnimation.animate(verseText, 4000);
+    verseAnimation.animate(verseText);
     
     setTimeout(() => verseEl.classList.remove('visible'), 5000);
   }

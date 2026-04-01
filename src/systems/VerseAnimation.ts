@@ -46,10 +46,9 @@ export class VerseAnimationSystem {
   }
   
   // Animate verse with smooth typing - DEFERRED to avoid blocking
-  animate(text: string, duration: number = 4000) {
-    // Store text and config, actual animation starts in next frame
+  animate(text: string) {
+    // Store text, actual animation starts in next frame
     this.pendingText = text;
-    this.pendingDuration = duration;
     this.isAnimating = true;
   }
   
@@ -88,8 +87,11 @@ export class VerseAnimationSystem {
       this.currentText = this.wrapText(this.currentText, maxLineLength);
     }
     
-    // Calculate typing speed AFTER wrapping (so we have enough time for all chars)
-    this.typingSpeed = Math.max(25, (this.pendingDuration || 5000) / this.currentText.length);
+    // Calculate typing speed AFTER wrapping - use minimum 5000ms for any length
+    const minDuration = 5000;
+    const duration = minDuration + (this.currentText.length > 50 ? (this.currentText.length - 50) * 30 : 0);
+    this.typingSpeed = Math.max(15, duration / this.currentText.length);
+    console.log(`Starting verse animation: ${this.currentText.length} chars, ${this.typingSpeed.toFixed(1)}ms per char, total ${duration}ms`);
     
     this.verseGroup.visible = true;
     this.verseGroup.position.copy(this.position);
@@ -103,9 +105,8 @@ export class VerseAnimationSystem {
       setTimeout(() => this.animateFloating(), 2000);
     }
   }
-  
+
   private pendingText: string | null = null;
-  private pendingDuration: number | null = null;
   
   // Animation loop - uses requestAnimationFrame properly
   private animateFrame() {
