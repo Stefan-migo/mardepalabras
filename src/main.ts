@@ -79,7 +79,7 @@ let tiempo = 0;
 
 // Performance mode state
 let performanceMode = false;
-let cameraZoom = 1.6; // 1.0 = normal, >1 = zoomed out (farther camera)
+let cameraZoom = 1.1; // 1.0 = normal, >1 = zoomed out (farther camera)
 let cameraY = 250; // Camera height (Y position)
 
 // Simplified mouse state for performance
@@ -128,13 +128,13 @@ function init(loadedPoems: Poem[]) {
   // Scene
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x010108);
-  scene.fog = new THREE.FogExp2(0x010108, 0.00035);
+  scene.fog = new THREE.FogExp2(0x010108, 0.0004);
   
-  // Camera - adjusted for mobile to see more sea at bottom
-  const fov = isMobile ? 75 : 60;
+  // Camera - shore view, closer to the sea
+  const fov = isMobile ? 80 : 60;
   camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 1, 3000);
-  camera.position.set(0, 180, 650); // Lower and closer
-  camera.lookAt(0, -50, -250); // Look more down to see bottom
+  camera.position.set(0, 120, 500); // Much closer to sea
+  camera.lookAt(0, -30, -200); // Looking along the water surface
   
   // Renderer - optimized
   renderer = new THREE.WebGLRenderer({ 
@@ -238,7 +238,7 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   // Adjust FOV for mobile
   if (isMobile) {
-    camera.fov = 75;
+    camera.fov = 80;
   }
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);

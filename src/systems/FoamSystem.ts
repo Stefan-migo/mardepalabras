@@ -45,11 +45,13 @@ export class FoamSystem {
   }
   
   private initializeParticles() {
+    // Same area as word field (approx 2500-3000 range to match word field)
+    const range = 2800;
     for (let i = 0; i < this.particleCount; i++) {
       const i3 = i * 3;
-      this.positions[i3] = (Math.random() - 0.5) * 2000;
-      this.positions[i3 + 1] = Math.random() * 20 - 10;
-      this.positions[i3 + 2] = (Math.random() - 0.5) * 2000;
+      this.positions[i3] = (Math.random() - 0.5) * range;
+      this.positions[i3 + 1] = Math.random() * 15 - 5;
+      this.positions[i3 + 2] = (Math.random() - 0.5) * range * 1.3; // More Z coverage
       
       this.basePositions[i3] = this.positions[i3];
       this.basePositions[i3 + 1] = this.positions[i3 + 1];
