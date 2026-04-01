@@ -30,8 +30,8 @@ function getAdaptiveConfig() {
   if (isMobile) {
     console.log('📱 Mobile detected - using optimized settings');
     return {
-      density: 800,           // More words for fuller sea
-      foamCount: 4000,       // More foam  
+      density: 900,           // More words
+      foamCount: 1500,       // Less foam  
       pixelRatio: 1,
       bloomResolution: 0.5,
       skipFrames: false
@@ -39,8 +39,8 @@ function getAdaptiveConfig() {
   } else if (isLowEndDevice) {
     console.log('💻 Low-end device detected');
     return {
-      density: 800,
-      foamCount: 4000,
+      density: 900,
+      foamCount: 2000,
       pixelRatio: 1,
       bloomResolution: 0.75,
       skipFrames: false
@@ -48,8 +48,8 @@ function getAdaptiveConfig() {
   } else {
     console.log('🖥️ High-end device detected');
     return {
-      density: 1000,
-      foamCount: 6000,
+      density: 1200,
+      foamCount: 2500,
       pixelRatio: Math.min(window.devicePixelRatio, 1.5),
       bloomResolution: 1,
       skipFrames: false
