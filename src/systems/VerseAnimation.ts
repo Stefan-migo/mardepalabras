@@ -20,10 +20,10 @@ export class VerseAnimationSystem {
   private scene: THREE.Scene;
   
   // Configurable position
-  private position: THREE.Vector3 = new THREE.Vector3(0, isMobile ? 180 : 100, isMobile ? 180 : 200);
-  private scale: number = isMobile ? 2.5 : 1; // Much larger on mobile
-  private letterSpacing: number = isMobile ? 22 : 14; // Wider spacing on mobile
-  private lineHeight: number = isMobile ? 45 : 22; // Much taller on mobile to prevent overlap
+  private position: THREE.Vector3 = new THREE.Vector3(0, isMobile ? 220 : 100, isMobile ? 250 : 200);
+  private scale: number = isMobile ? 3.0 : 1; // Even larger on mobile
+  private letterSpacing: number = isMobile ? 28 : 14; // Much wider on mobile
+  private lineHeight: number = isMobile ? 55 : 22; // Much taller line spacing
   
   // Texture quality - higher on mobile
   private textureSize: number = isMobile ? 128 : 48;
@@ -164,12 +164,12 @@ export class VerseAnimationSystem {
     const x = (charInLine - this.getLongestLineLength(lines) / 2) * this.letterSpacing;
     // First line starts higher, each subsequent line is below
     const y = isMobile 
-      ? -lineIndex * this.lineHeight + 30  // Offset first line up by 30
+      ? -lineIndex * this.lineHeight + 40  // Offset first line up by 40
       : -lineIndex * this.lineHeight;
     
     // Scale is already adjusted for mobile via this.scale
     sprite.position.set(x, y, 0);
-    sprite.scale.set(25, 35, 1); // Larger letters
+    sprite.scale.set(30, 42, 1); // Even larger letters
     
     this.verseGroup.add(sprite);
     this.sprites.push(sprite);

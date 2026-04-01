@@ -271,8 +271,8 @@ window.addEventListener('touchstart', (e) => {
     mouse.worldX = x * 500;
     mouse.worldZ = y * 500 - 300;
     
-    // Add ripple - stronger on mobile for visibility
-    ripples.push({ x: mouse.worldX, z: mouse.worldZ, time: 0, strength: 120 });
+    // Add ripple - gentler on mobile
+    ripples.push({ x: mouse.worldX, z: mouse.worldZ, time: 0, strength: 40 });
     
     // Show verse on tap (more likely on mobile)
     if (poems.length > 0 && Math.random() > 0.4) {
@@ -326,9 +326,9 @@ window.addEventListener('touchmove', (e) => {
   mouse.worldX = x * 500;
   mouse.worldZ = y * 500 - 300;
   
-  // Add ripples continuously while dragging on mobile - stronger effect
+  // Add ripples continuously while dragging on mobile - gentle effect
   if (mouse.pressed) {
-    ripples.push({ x: mouse.worldX, z: mouse.worldZ, time: 0, strength: 60 });
+    ripples.push({ x: mouse.worldX, z: mouse.worldZ, time: 0, strength: 20 });
   }
 }, { passive: false });
 

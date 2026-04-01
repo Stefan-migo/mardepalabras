@@ -79,7 +79,7 @@ export class FoamSystem {
       
       const waveY = waveFn(x * 0.008, z * 0.008) * 0.3;
       
-      // Apply ripple effects to foam particles
+      // Apply ripple effects to foam particles - gentle
       let rippleEffect = 0;
       if (ripples && ripples.length > 0) {
         for (const ripple of ripples) {
@@ -87,12 +87,12 @@ export class FoamSystem {
             const dx = x - ripple.x;
             const dz = z - ripple.z;
             const dist = Math.sqrt(dx * dx + dz * dz);
-            const rippleRadius = ripple.time * 150;
-            const rippleWidth = 80;
+            const rippleRadius = ripple.time * 80;
+            const rippleWidth = 60;
             
             if (dist < rippleRadius + rippleWidth && dist > rippleRadius - rippleWidth) {
               const ripplePhase = (dist - rippleRadius) / rippleWidth;
-              rippleEffect += Math.sin(ripplePhase * Math.PI) * ripple.strength * 0.5 * (1 - ripple.time / 3);
+              rippleEffect += Math.sin(ripplePhase * Math.PI) * ripple.strength * 0.15 * (1 - ripple.time / 3);
             }
           }
         }

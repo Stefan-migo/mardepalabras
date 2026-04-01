@@ -158,7 +158,7 @@ export class WordField {
         }
       }
       
-      // Additional ripple effect on words
+      // Additional ripple effect on words - gentle
       let rippleEffect = 0;
       if (ripples && ripples.length > 0) {
         for (const ripple of ripples) {
@@ -166,12 +166,12 @@ export class WordField {
             const dx = baseX - ripple.x;
             const dz = baseZ - ripple.z;
             const dist = Math.sqrt(dx * dx + dz * dz);
-            const rippleRadius = ripple.time * 150;
-            const rippleWidth = 100;
+            const rippleRadius = ripple.time * 100;
+            const rippleWidth = 80;
             
             if (dist < rippleRadius + rippleWidth && dist > rippleRadius - rippleWidth) {
               const ripplePhase = (dist - rippleRadius) / rippleWidth;
-              rippleEffect += Math.sin(ripplePhase * Math.PI) * ripple.strength * 0.4 * (1 - ripple.time / 3);
+              rippleEffect += Math.sin(ripplePhase * Math.PI) * ripple.strength * 0.15 * (1 - ripple.time / 3);
             }
           }
         }
