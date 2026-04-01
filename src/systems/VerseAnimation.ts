@@ -19,15 +19,15 @@ export class VerseAnimationSystem {
   private textureCache: Map<string, THREE.Texture> = new Map();
   private scene: THREE.Scene;
   
-  // Configurable position - higher up for mobile to see 3 lines
-  private position: THREE.Vector3 = new THREE.Vector3(0, isMobile ? 350 : 100, isMobile ? 300 : 200);
-  private scale: number = isMobile ? 1.8 : 1; // Smaller scale for 3 lines
-  private letterSpacing: number = isMobile ? 16 : 14; // Tighter spacing
-  private lineHeight: number = isMobile ? 36 : 22; // Line height for 3 lines
+  // Configurable position - further away for mobile for 3 lines max
+  private position: THREE.Vector3 = new THREE.Vector3(0, isMobile ? 380 : 100, isMobile ? 380 : 200);
+  private scale: number = isMobile ? 2.2 : 1; // Larger scale
+  private letterSpacing: number = isMobile ? 20 : 14; // Wider spacing for bigger letters
+  private lineHeight: number = isMobile ? 42 : 22; // Line height for 3 lines
   
   // Texture quality - higher on mobile
   private textureSize: number = isMobile ? 128 : 48;
-  private fontSize: number = isMobile ? 0.65 : 0.55;
+  private fontSize: number = isMobile ? 0.7 : 0.55; // Larger font
   
   constructor(sceneRefs: SceneRefs) {
     this.scene = sceneRefs.scene;
@@ -52,13 +52,23 @@ export class VerseAnimationSystem {
     this.isAnimating = true;
   }
   
-  // Auto-wrap text for mobile
+  // Auto-wrap text for mobile - MAX 3 LINES
   private wrapText(text: string, maxCharsPerLine: number = 25): string {
     const words = text.split(' ');
     let lines: string[] = [];
     let currentLine = '';
     
     for (const word of words) {
+      // Stop at 3 lines max
+      if (lines.length >= 3) {
+        // Add remaining words to last line with "..."
+        if (currentLine) {
+          currentLine = currentLine.substring(0, maxCharsPerLine - 3) + '...';
+          lines.push(currentLine);
+        }
+        break;
+      }
+      
       if ((currentLine + ' ' + word).trim().length <= maxCharsPerLine) {
         currentLine = (currentLine + ' ' + word).trim();
       } else {
@@ -66,7 +76,7 @@ export class VerseAnimationSystem {
         currentLine = word;
       }
     }
-    if (currentLine) lines.push(currentLine);
+    if (currentLine && lines.length < 3) lines.push(currentLine);
     
     return lines.join('\n');
   }
@@ -85,7 +95,7 @@ export class VerseAnimationSystem {
     
     // Auto-wrap on mobile FIRST (before calculating typing speed)
     if (isMobile) {
-      const maxLineLength = window.innerWidth < 400 ? 15 : 18;
+      const maxLineLength = window.innerWidth < 400 ? 20 : 24;
       this.currentText = this.wrapText(this.currentText, maxLineLength);
     }
     
@@ -176,12 +186,12 @@ export class VerseAnimationSystem {
     const x = (charInLine - this.getLongestLineLength(lines) / 2) * this.letterSpacing;
     // First line starts higher, each subsequent line is below
     const y = isMobile 
-      ? -lineIndex * this.lineHeight + 25  // Offset first line up by 25
+      ? -lineIndex * this.lineHeight + 30  // Offset first line up by 30
       : -lineIndex * this.lineHeight;
     
-    // Scale is already adjusted for mobile via this.scale
+    // Larger letters
     sprite.position.set(x, y, 0);
-    sprite.scale.set(16, 22, 1); // Smaller letters to fit 3 lines
+    sprite.scale.set(22, 30, 1); // Larger letters
     
     this.verseGroup.add(sprite);
     this.sprites.push(sprite);
