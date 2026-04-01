@@ -19,11 +19,11 @@ export class VerseAnimationSystem {
   private textureCache: Map<string, THREE.Texture> = new Map();
   private scene: THREE.Scene;
   
-  // Configurable position - further away for mobile for 3 lines max
-  private position: THREE.Vector3 = new THREE.Vector3(0, isMobile ? 380 : 100, isMobile ? 380 : 200);
-  private scale: number = isMobile ? 2.2 : 1; // Larger scale
-  private letterSpacing: number = isMobile ? 14 : 14; // Tighter letter spacing
-  private lineHeight: number = isMobile ? 42 : 22; // Line height for 3 lines
+  // Configurable position - further away for mobile to fit 4 lines
+  private position: THREE.Vector3 = new THREE.Vector3(0, isMobile ? 420 : 100, isMobile ? 450 : 200);
+  private scale: number = isMobile ? 2.5 : 1; // Larger scale to fit more lines
+  private letterSpacing: number = isMobile ? 12 : 14; // Tighter letter spacing
+  private lineHeight: number = isMobile ? 38 : 22; // Smaller line height for compact 4-line text
   
   // Texture quality - higher on mobile
   private textureSize: number = isMobile ? 128 : 48;
@@ -52,20 +52,15 @@ export class VerseAnimationSystem {
     this.isAnimating = true;
   }
   
-  // Auto-wrap text for mobile - MAX 3 LINES
+  // Auto-wrap text for mobile - Up to 4 lines, no truncation
   private wrapText(text: string, maxCharsPerLine: number = 25): string {
     const words = text.split(' ');
     let lines: string[] = [];
     let currentLine = '';
     
     for (const word of words) {
-      // Stop at 3 lines max
-      if (lines.length >= 3) {
-        // Add remaining words to last line with "..."
-        if (currentLine) {
-          currentLine = currentLine.substring(0, maxCharsPerLine - 3) + '...';
-          lines.push(currentLine);
-        }
+      // Stop at 4 lines max (allow full text within 4 lines)
+      if (lines.length >= 4) {
         break;
       }
       
@@ -76,7 +71,7 @@ export class VerseAnimationSystem {
         currentLine = word;
       }
     }
-    if (currentLine && lines.length < 3) lines.push(currentLine);
+    if (currentLine) lines.push(currentLine);
     
     return lines.join('\n');
   }
@@ -93,16 +88,16 @@ export class VerseAnimationSystem {
     this.pendingText = null;
     this.currentIndex = 0;
     
-    // Auto-wrap on mobile FIRST (before calculating typing speed)
+    // Auto-wrap on mobile - more chars per line to fit full text
     if (isMobile) {
-      const maxLineLength = window.innerWidth < 400 ? 20 : 24;
+      const maxLineLength = window.innerWidth < 400 ? 22 : 28;
       this.currentText = this.wrapText(this.currentText, maxLineLength);
     }
     
-    // Calculate typing speed AFTER wrapping - use minimum 5000ms for any length
-    const minDuration = 5000;
-    const duration = minDuration + (this.currentText.length > 50 ? (this.currentText.length - 50) * 30 : 0);
-    this.typingSpeed = Math.max(15, duration / this.currentText.length);
+    // Calculate typing speed AFTER wrapping - use longer time to ensure complete text
+    const minDuration = 7000;
+    const duration = minDuration + (this.currentText.length > 60 ? (this.currentText.length - 60) * 40 : 0);
+    this.typingSpeed = Math.max(12, duration / this.currentText.length);
     console.log(`Starting verse animation: ${this.currentText.length} chars, ${this.typingSpeed.toFixed(1)}ms per char, total ${duration}ms`);
     
     this.verseGroup.visible = true;
@@ -186,12 +181,12 @@ export class VerseAnimationSystem {
     const x = (charInLine - this.getLongestLineLength(lines) / 2) * this.letterSpacing;
     // First line starts higher, each subsequent line is below
     const y = isMobile 
-      ? -lineIndex * this.lineHeight + 30  // Offset first line up by 30
+      ? -lineIndex * this.lineHeight + 25  // Offset first line up by 25
       : -lineIndex * this.lineHeight;
     
-    // Larger letters
+    // Slightly smaller letters to fit more per line
     sprite.position.set(x, y, 0);
-    sprite.scale.set(22, 30, 1); // Larger letters
+    sprite.scale.set(18, 26, 1); // Smaller letters to fit more text
     
     this.verseGroup.add(sprite);
     this.sprites.push(sprite);
