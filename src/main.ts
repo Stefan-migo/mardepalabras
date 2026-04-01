@@ -253,6 +253,12 @@ window.addEventListener('mousemove', (e) => {
 
 // Touch events for mobile
 window.addEventListener('touchstart', (e) => {
+  // Don't trigger ripple if touching UI elements
+  const target = e.target as HTMLElement;
+  if (target.closest('#mobile-menu-btn') || target.closest('#mobile-controls') || target.closest('#performance-mode-btn')) {
+    return; // Let the button handle its own events
+  }
+  
   e.preventDefault();
   mouse.pressed = true;
   const touch = e.touches[0];
@@ -270,11 +276,22 @@ window.addEventListener('touchstart', (e) => {
   }
 }, { passive: false });
 
-window.addEventListener('touchend', () => {
+window.addEventListener('touchend', (e) => {
+  // Don't reset mouse if touching UI elements
+  const target = e.target as HTMLElement;
+  if (target.closest('#mobile-menu-btn') || target.closest('#mobile-controls')) {
+    return;
+  }
   mouse.pressed = false;
 });
 
 window.addEventListener('touchmove', (e) => {
+  // Don't update mouse position if touching UI elements
+  const target = e.target as HTMLElement;
+  if (target.closest('#mobile-menu-btn') || target.closest('#mobile-controls')) {
+    return;
+  }
+  
   e.preventDefault();
   const touch = e.touches[0];
   const x = (touch.clientX / window.innerWidth - 0.5) * 2;
