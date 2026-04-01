@@ -517,9 +517,32 @@ function getVerseElements() {
   return { verseEl: verseDisplayEl, authorEl: authorDisplayEl };
 }
 
+// Track shown poems to avoid repetition
+let shownPoemIndices = new Set<number>();
+
 function showRandomVerse() {
+  // Get available poems (not yet shown)
+  const availableIndices: number[] = [];
+  for (let i = 0; i < poems.length; i++) {
+    if (!shownPoemIndices.has(i)) {
+      availableIndices.push(i);
+    }
+  }
+  
+  // If all poems have been shown, reset and start over
+  if (availableIndices.length === 0) {
+    shownPoemIndices.clear();
+    for (let i = 0; i < poems.length; i++) {
+      availableIndices.push(i);
+    }
+  }
+  
+  // Pick random poem from available
+  const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+  shownPoemIndices.add(randomIndex);
+  
+  const poem = poems[randomIndex];
   const { verseEl, authorEl } = getVerseElements();
-  const poem = poems[Math.floor(Math.random() * poems.length)];
   
   if (verseEl && authorEl) {
     const verseText = poem.excerpt || poem.lines[0];
