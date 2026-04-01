@@ -5,6 +5,9 @@
 import * as THREE from 'three';
 import type { SceneRefs } from '../types';
 
+// Detect mobile for quality adjustments
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
 export class VerseAnimationSystem {
   private verseGroup: THREE.Group;
   private sprites: THREE.Sprite[] = [];
@@ -21,6 +24,10 @@ export class VerseAnimationSystem {
   private scale: number = 1;
   private letterSpacing: number = 14;
   private lineHeight: number = 22;
+  
+  // Texture quality - higher on mobile
+  private textureSize: number = isMobile ? 128 : 48;
+  private fontSize: number = isMobile ? 0.65 : 0.55;
   
   constructor(sceneRefs: SceneRefs) {
     this.scene = sceneRefs.scene;
@@ -46,6 +53,25 @@ export class VerseAnimationSystem {
     this.isAnimating = true;
   }
   
+  // Auto-wrap text for mobile
+  private wrapText(text: string, maxCharsPerLine: number = 25): string {
+    const words = text.split(' ');
+    let lines: string[] = [];
+    let currentLine = '';
+    
+    for (const word of words) {
+      if ((currentLine + ' ' + word).trim().length <= maxCharsPerLine) {
+        currentLine = (currentLine + ' ' + word).trim();
+      } else {
+        if (currentLine) lines.push(currentLine);
+        currentLine = word;
+      }
+    }
+    if (currentLine) lines.push(currentLine);
+    
+    return lines.join('\n');
+  }
+  
   // Process pending animation - call this from animation loop
   processPendingAnimation() {
     if (!this.pendingText) return;
@@ -57,6 +83,12 @@ export class VerseAnimationSystem {
     this.pendingText = null;
     this.currentIndex = 0;
     this.typingSpeed = Math.max(30, (this.pendingDuration || 4000) / this.currentText.length);
+    
+    // Auto-wrap on mobile
+    if (isMobile) {
+      const maxLineLength = window.innerWidth < 400 ? 20 : 28;
+      this.currentText = this.wrapText(this.currentText, maxLineLength);
+    }
     
     this.verseGroup.visible = true;
     this.verseGroup.position.copy(this.position);
@@ -127,8 +159,10 @@ export class VerseAnimationSystem {
     const x = (charInLine - this.getLongestLineLength(lines) / 2) * this.letterSpacing;
     const y = -lineIndex * this.lineHeight;
     
+    // Larger scale on mobile for better readability
+    const scaleMultiplier = isMobile ? 1.5 : 1;
     sprite.position.set(x, y, 0);
-    sprite.scale.set(20, 28, 1);
+    sprite.scale.set(20 * scaleMultiplier, 28 * scaleMultiplier, 1);
     
     this.verseGroup.add(sprite);
     this.sprites.push(sprite);
@@ -168,9 +202,9 @@ export class VerseAnimationSystem {
     animate();
   }
   
-  // Create texture for character
+  // Create texture for character - higher quality on mobile
   private createTexture(char: string): THREE.Texture {
-    const size = 48;
+    const size = this.textureSize;
     const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;
@@ -180,13 +214,15 @@ export class VerseAnimationSystem {
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = `bold ${size * 0.55}px "Crimson Pro", Georgia, serif`;
-    ctx.shadowColor = 'rgba(200, 180, 255, 0.5)';
-    ctx.shadowBlur = size * 0.08;
+    ctx.font = `bold ${size * this.fontSize}px "Crimson Pro", Georgia, serif`;
+    ctx.shadowColor = 'rgba(200, 180, 255, 0.8)';
+    ctx.shadowBlur = size * 0.12;
     ctx.fillText(char, size / 2, size / 2);
     
     const texture = new THREE.CanvasTexture(canvas);
     texture.needsUpdate = true;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
     return texture;
   }
   
