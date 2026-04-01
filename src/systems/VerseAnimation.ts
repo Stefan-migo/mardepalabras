@@ -23,7 +23,7 @@ export class VerseAnimationSystem {
   private position: THREE.Vector3 = new THREE.Vector3(0, 100, 200);
   private scale: number = 1;
   private letterSpacing: number = 14;
-  private lineHeight: number = 22;
+  private lineHeight: number = isMobile ? 45 : 22; // Much taller on mobile to prevent overlap
   
   // Texture quality - higher on mobile
   private textureSize: number = isMobile ? 128 : 48;
@@ -162,7 +162,10 @@ export class VerseAnimationSystem {
     const charInLine = index - lineStart;
     
     const x = (charInLine - this.getLongestLineLength(lines) / 2) * this.letterSpacing;
-    const y = -lineIndex * this.lineHeight;
+    // First line starts higher, each subsequent line is below
+    const y = isMobile 
+      ? -lineIndex * this.lineHeight + 20  // Offset first line up by 20
+      : -lineIndex * this.lineHeight;
     
     // Larger scale on mobile for better readability
     const scaleMultiplier = isMobile ? 1.5 : 1;
