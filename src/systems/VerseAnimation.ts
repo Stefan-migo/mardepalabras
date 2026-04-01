@@ -287,8 +287,12 @@ export class VerseAnimationSystem {
   // Update to face camera - also process pending animation
   update(camera: THREE.Camera) {
     // Process any pending animation (deferred from click)
-    // Process immediately if there's pending text
-    if (this.pendingText) {
+    // Process immediately if there's pending text OR if we need to restart
+    if (this.pendingText && !this.isAnimating) {
+      this.isAnimating = true;
+      this.processPendingAnimation();
+    } else if (this.pendingText) {
+      // Already animating, just process
       this.processPendingAnimation();
     }
     
