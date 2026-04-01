@@ -288,6 +288,92 @@
       from { opacity: 0; transform: translateY(5px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    
+    /* ============================================ */
+    /* MOBILE RESPONSIVE STYLES */
+    /* ============================================ */
+    @media (max-width: 768px) {
+      /* Hide complex UI on mobile */
+      #controls {
+        display: none !important;
+      }
+      
+      #letter-settings,
+      #verse-position-panel {
+        display: none !important;
+      }
+      
+      #toggle-letters,
+      #toggle-verse-position {
+        display: none !important;
+      }
+      
+      #source-info {
+        display: none !important;
+      }
+      
+      #animate-word-btn {
+        display: none !important;
+      }
+      
+      #animated-word-display {
+        display: none !important;
+      }
+      
+      /* Simplify info panel */
+      #info {
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+        max-width: none;
+      }
+      
+      #info h1 {
+        font-size: 18px;
+        letter-spacing: 2px;
+      }
+      
+      #info p {
+        font-size: 11px;
+        opacity: 0.7;
+      }
+      
+      #hint {
+        top: 20px;
+        left: 20px;
+        font-size: 10px;
+      }
+      
+      /* Mobile-friendly tap zone indicator */
+      #tap-hint {
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 11px;
+        z-index: 100;
+        text-align: center;
+        pointer-events: none;
+        animation: pulse 2s infinite;
+      }
+      
+      @keyframes pulse {
+        0%, 100% { opacity: 0.4; }
+        50% { opacity: 0.7; }
+      }
+    }
+    
+    /* Very small screens */
+    @media (max-width: 400px) {
+      #info h1 {
+        font-size: 14px;
+      }
+      
+      #info p {
+        font-size: 10px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -300,6 +386,8 @@
   </div>
   
   <div id="hint">Click para perturbación • Arrastra para ondas</div>
+  
+  <div id="tap-hint" style="display: none;">Toca para revelar poesía</div>
   
   <div id="info">
     <h1>MAR DE PALABRAS</h1>

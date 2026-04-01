@@ -21,6 +21,44 @@ import { setupControls } from './ui/Controls';
 // ============================================
 console.log('=== MAR DE PALABRAS - Refactored ===');
 
+// Device detection for adaptive performance
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+const isLowEndDevice = isMobile || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
+
+// Adaptive config based on device
+function getAdaptiveConfig() {
+  if (isMobile) {
+    console.log('📱 Mobile detected - using optimized settings');
+    return {
+      density: 400,           // Fewer words
+      foamCount: 2000,       // Less foam  
+      pixelRatio: 1,          // Lower resolution
+      bloomResolution: 0.5,  // Lower bloom quality
+      skipFrames: false      // But still smooth
+    };
+  } else if (isLowEndDevice) {
+    console.log('💻 Low-end device detected');
+    return {
+      density: 600,
+      foamCount: 3000,
+      pixelRatio: 1,
+      bloomResolution: 0.75,
+      skipFrames: false
+    };
+  } else {
+    console.log('🖥️ High-end device detected');
+    return {
+      density: 800,
+      foamCount: 5000,
+      pixelRatio: Math.min(window.devicePixelRatio, 1.5),
+      bloomResolution: 1,
+      skipFrames: false
+    };
+  }
+}
+
+const adaptiveConfig = getAdaptiveConfig();
+
 let scene: THREE.Scene;
 let camera: THREE.PerspectiveCamera;
 let renderer: THREE.WebGLRenderer;
@@ -68,6 +106,16 @@ function init(loadedPoems: Poem[]) {
   const loading = document.getElementById('loading');
   if (loading) loading.style.display = 'none';
   
+  // Show mobile hint if on mobile
+  if (isMobile) {
+    const tapHint = document.getElementById('tap-hint');
+    if (tapHint) tapHint.style.display = 'block';
+    
+    // Update hint text
+    const hint = document.getElementById('hint');
+    if (hint) hint.textContent = 'Toca para perturbación';
+  }
+  
   poems = loadedPoems;
   noise = new SimplexNoise();
   textRenderer = new TextRenderer();
@@ -88,17 +136,19 @@ function init(loadedPoems: Poem[]) {
     powerPreference: 'high-performance' 
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  renderer.setPixelRatio(adaptiveConfig.pixelRatio);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.2;
   document.getElementById('canvas-container')!.appendChild(renderer.domElement);
   
-  // Post-processing - optimized bloom
+  // Post-processing - optimized bloom (lower resolution on mobile)
+  const bloomW = Math.floor(window.innerWidth * adaptiveConfig.bloomResolution);
+  const bloomH = Math.floor(window.innerHeight * adaptiveConfig.bloomResolution);
   composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
   
   bloomPass = new UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    new THREE.Vector2(bloomW, bloomH),
     0.5, 0.3, 0.85
   );
   composer.addPass(bloomPass);
@@ -114,9 +164,9 @@ function init(loadedPoems: Poem[]) {
   
   // Initialize systems
   wordField = new WordField(scene, textRenderer, config);
-  wordField.create(poems, config.density);
+  wordField.create(poems, adaptiveConfig.density);
   
-  foamSystem = new FoamSystem(scene, 5000);
+  foamSystem = new FoamSystem(scene, adaptiveConfig.foamCount);
   foamSystem.updateDensity(wordField.getWordCount());
   
   verseAnimation = new VerseAnimationSystem({ scene, camera, renderer, composer, bloomPass });
@@ -180,7 +230,11 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  
+  const bloomW = Math.floor(window.innerWidth * adaptiveConfig.bloomResolution);
+  const bloomH = Math.floor(window.innerHeight * adaptiveConfig.bloomResolution);
   composer.setSize(window.innerWidth, window.innerHeight);
+  bloomPass.resolution.set(bloomW, bloomH);
 });
 
 // Use passive listener for mousemove (non-blocking)
@@ -190,6 +244,38 @@ window.addEventListener('mousemove', (e) => {
   mouse.worldX = x * 500;
   mouse.worldZ = y * 500 - 300;
 }, { passive: true });
+
+// Touch events for mobile
+window.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  mouse.pressed = true;
+  const touch = e.touches[0];
+  const x = (touch.clientX / window.innerWidth - 0.5) * 2;
+  const y = (touch.clientY / window.innerHeight - 0.5) * 2;
+  mouse.worldX = x * 500;
+  mouse.worldZ = y * 500 - 300;
+  
+  // Add ripple
+  ripples.push({ x: mouse.worldX, z: mouse.worldZ, time: 0, strength: 80 });
+  
+  // Show verse on tap (more likely on mobile)
+  if (poems.length > 0 && Math.random() > 0.3) {
+    requestAnimationFrame(() => showRandomVerse());
+  }
+}, { passive: false });
+
+window.addEventListener('touchend', () => {
+  mouse.pressed = false;
+});
+
+window.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+  const touch = e.touches[0];
+  const x = (touch.clientX / window.innerWidth - 0.5) * 2;
+  const y = (touch.clientY / window.innerHeight - 0.5) * 2;
+  mouse.worldX = x * 500;
+  mouse.worldZ = y * 500 - 300;
+}, { passive: false });
 
 // Defer heavy operations to avoid blocking UI
 window.addEventListener('mousedown', () => {
